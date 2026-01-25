@@ -1,0 +1,207 @@
+const Destination = require("../models/Destination");
+const User = require("../models/User");
+
+// @desc    Get all pending destinations for moderation
+// @route   GET /api/admin/destinations/pending
+// @access  Admin only
+exports.getPendingDestinations = async (req, res) => {
+  try {
+    const destinations = await Destination.find({ approved: false })
+      .populate("createdBy", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: destinations.length,
+      data: destinations
+    });
+  } catch (error) {
+    console.error("getPendingDestinations error", error);
+    res.status(500).json({ success: false, error: "Failed to fetch pending destinations" });
+  }
+};
+
+// @desc    Approve a destination
+// @route   PUT /api/admin/destinations/:id/approve
+// @access  Admin only
+exports.approveDestination = async (req, res) => {
+  try {
+    const destination = await Destination.findById(req.params.id);
+
+    if (!destination) {
+      return res.status(404).json({ success: false, error: "Destination not found" });
+    }
+
+    destination.approved = true;
+    await destination.save();
+
+    res.json({
+      success: true,
+      data: destination,
+      message: "Destination approved successfully"
+    });
+  } catch (error) {
+    console.error("approveDestination error", error);
+    res.status(500).json({ success: false, error: "Failed to approve destination" });
+  }
+};
+
+// @desc    Reject/Delete a destination
+// @route   DELETE /api/admin/destinations/:id/reject
+// @access  Admin only
+exports.rejectDestination = async (req, res) => {
+  try {
+    const destination = await Destination.findById(req.params.id);
+
+    if (!destination) {
+      return res.status(404).json({ success: false, error: "Destination not found" });
+    }
+
+    await destination.deleteOne();
+
+    res.json({
+      success: true,
+      message: "Destination rejected and removed"
+    });
+  } catch (error) {
+    console.error("rejectDestination error", error);
+    res.status(500).json({ success: false, error: "Failed to reject destination" });
+  }
+};
+
+// @desc    Get all guides
+// @route   GET /api/admin/users/guides
+// @access  Admin only
+exports.getAllGuides = async (req, res) => {
+  try {
+    const guides = await User.find({ role: "guide" })
+      .select("-password -resetPasswordToken -resetPasswordExpires -verificationOTP -verificationOTPExpires")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: guides.length,
+      data: guides
+    });
+  } catch (error) {
+    console.error("getAllGuides error", error);
+    res.status(500).json({ success: false, error: "Failed to fetch guides" });
+  }
+};
+
+// @desc    Get all contributors
+// @route   GET /api/admin/users/contributors
+// @access  Admin only
+exports.getAllContributors = async (req, res) => {
+  try {
+    const contributors = await User.find({ role: "contributor" })
+      .select("-password -resetPasswordToken -resetPasswordExpires -verificationOTP -verificationOTPExpires")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: contributors.length,
+      data: contributors
+    });
+  } catch (error) {
+    console.error("getAllContributors error", error);
+    res.status(500).json({ success: false, error: "Failed to fetch contributors" });
+  }
+};
+
+// @desc    Get all travelers
+// @route   GET /api/admin/users/travelers
+// @access  Admin only
+exports.getAllTravelers = async (req, res) => {
+  try {
+    const travelers = await User.find({ role: "traveler" })
+      .select("-password -resetPasswordToken -resetPasswordExpires -verificationOTP -verificationOTPExpires")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: travelers.length,
+      data: travelers
+    });
+  } catch (error) {
+    console.error("getAllTravelers error", error);
+    res.status(500).json({ success: false, error: "Failed to fetch travelers" });
+  }
+};
+
+// @desc    Get dashboard statistics
+// @route   GET /api/admin/stats
+// @access  Admin only
+exports.getStats = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const travelers = await User.countDocuments({ role: "traveler" });
+    const contributors = await User.countDocuments({ role: "contributor" });
+    const guides = await User.countDocuments({ role: "guide" });
+    const verifiedGuides = await User.countDocuments({ role: "guide", verified: true });
+
+    const totalDestinations = await Destination.countDocuments();
+    const approvedDestinations = await Destination.countDocuments({ approved: true });
+    const pendingDestinations = await Destination.countDocuments({ approved: false });
+
+    // Aggregate destinations by location (top 5)
+    const topLocations = await Destination.aggregate([
+      { $group: { _id: "$location", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        users: {
+          total: totalUsers,
+          travelers,
+          contributors,
+          guides,
+          verifiedGuides
+        },
+        destinations: {
+          total: totalDestinations,
+          approved: approvedDestinations,
+          pending: pendingDestinations,
+          topLocations
+        },
+        // Mock data for growth since we don't have historical tracking in models yet
+        growth: [
+          { month: 'Jan', users: 12 },
+          { month: 'Feb', users: 19 },
+          { month: 'Mar', users: 45 },
+          { month: 'Apr', users: 80 }
+        ]
+      }
+    });
+  } catch (error) {
+    console.error("getStats error", error);
+    res.status(500).json({ success: false, error: "Failed to fetch statistics" });
+  }
+};
+
+// @desc    Get destinations by contributor ID
+// @route   GET /api/admin/users/:id/destinations
+// @access  Admin only
+exports.getContributorDestinations = async (req, res) => {
+  try {
+    const destinations = await Destination.find({ createdBy: req.params.id })
+      .sort({ createdAt: -1 })
+      .populate('createdBy', 'name email');
+    
+    // Also fetch user details to show name on the page
+    const user = await User.findById(req.params.id).select('name email');
+
+    res.json({
+      success: true,
+      count: destinations.length,
+      data: destinations,
+      contributor: user
+    });
+  } catch (error) {
+    console.error("getContributorDestinations error", error);
+    res.status(500).json({ success: false, error: "Failed to fetch contributor destinations" });
+  }
+};
