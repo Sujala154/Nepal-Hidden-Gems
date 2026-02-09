@@ -1,55 +1,26 @@
-// const express = require('express');
-// const router = express.Router();
-// const {
-//   getDestinations,
-//   getDestination,
-//   createDestination,
-//   updateDestination,
-//   deleteDestination,
-//   searchDestinations,
-//   filterDestinations,
-//   saveDestination,
-//   unsaveDestination,
-//   getUserDestinations,
-//   getPendingDestinations,
-//   approveDestination,
-//   rejectDestination,
-//   getPopularDestinations,
-//   getNearbyDestinations,
-//   getByCategory,
-//   uploadImages
-// } = require('../controllers/destinationController');
-// const { protect, authorize } = require('../middleware/authMiddleware');
-// const { upload } = require('../middleware/uploadMiddleware');
+const express = require('express');
+const router = express.Router();
+const {
+  getDestinations,
+  getDestination,
+  createDestination,
+  updateDestination,
+  deleteDestination,
+  getUserDestinations
+} = require('../controllers/destinationController');
 
-// // Public routes
-// router.get('/', getDestinations);
-// router.get('/search', searchDestinations);
-// router.get('/filter', filterDestinations);
-// router.get('/popular', getPopularDestinations);
-// router.get('/nearby', getNearbyDestinations);
-// router.get('/category/:category', getByCategory);
-// router.get('/:id', getDestination);
+const { protect, authorize } = require('../middleware/authMiddleware');
+const { upload } = require('../middleware/uploadMiddleware');
 
-// // Protected routes - require authentication
-// router.use(protect);
+// Public routes
+router.get('/', getDestinations);
 
-// // User-specific routes
-// router.post('/:id/save', authorize('traveler'), saveDestination);
-// router.delete('/:id/unsave', authorize('traveler'), unsaveDestination);
-// router.get('/user/my-destinations', authorize('contributor', 'admin'), getUserDestinations);
+// Protected routes
+router.post('/', protect, authorize('contributor', 'admin'), upload.array('images', 5), createDestination);
+router.put('/:id', protect, authorize('contributor', 'admin'), upload.array('images', 5), updateDestination);
+router.delete('/:id', protect, deleteDestination);
+router.get('/user/my-destinations', protect, getUserDestinations);
 
-// // Contributor & Admin routes for destination management
-// router.post('/', authorize('contributor', 'admin'), createDestination);
-// router.put('/:id', authorize('contributor', 'admin'), updateDestination);
-// router.delete('/:id', authorize('contributor', 'admin'), deleteDestination);
+router.get('/:id', getDestination);
 
-// // Image upload route
-// router.post('/upload/images', authorize('contributor', 'admin'), upload.array('images', 10), uploadImages);
-
-// // Admin-only routes
-// router.get('/admin/pending', authorize('admin'), getPendingDestinations);
-// router.put('/admin/approve/:id', authorize('admin'), approveDestination);
-// router.put('/admin/reject/:id', authorize('admin'), rejectDestination);
-
-// module.exports = router;
+module.exports = router;

@@ -32,12 +32,18 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('uploads'));
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
+app.use('/api/destinations', require('./routes/destinationRoutes'));
+app.use('/api/guides', require('./routes/guideRoutes'));
+app.use('/api', require('./routes/userRoutes')); // Mounts /api/favorites
+app.use('/api/admin', adminRoutes); // Admin routes
 
 // Test routes
 app.get('/', (req, res) => {

@@ -326,4 +326,92 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Google Login
+router.post('/google-login', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    
+    if (!credential) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Google credential is required" 
+      });
+    }
+
+    // Verify token with Google
+    const googleResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    const googleData = await googleResponse.json();
+
+    if (!googleData.email || !googleData.email_verified) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Invalid or unverified Google account" 
+      });
+    }
+
+    const { email, name, sub: googleId, picture } = googleData;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user exists
+    let user = await User.findOne({ email: normalizedEmail });
+
+    if (user) {
+      // User exists - Login
+      // If user wasn't verified before, mark as verified since they logged in with Google
+      if (!user.verified) {
+        user.verified = true;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      // Generate random password for google users
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(randomPassword, salt);
+
+      user = new User({
+        name: name || 'Google User',
+        email: normalizedEmail,
+        password: hashedPassword,
+        role: 'traveler', // Default role
+        verified: true,
+        // You might want to store googleId or picture if you add those fields to schema
+      });
+
+      await user.save();
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { 
+        userId: user._id,
+        email: user.email,
+        role: user.role 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Google login successful',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        verified: user.verified
+      }
+    });
+
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error during Google login' 
+    });
+  }
+});
+
 module.exports = router;
