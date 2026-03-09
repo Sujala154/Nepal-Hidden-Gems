@@ -5,13 +5,26 @@ exports.getDestinationBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
 
-    // Explicitly query by slug field to ensure we don't accidentally query by ID
-    const destination = await Destination.findOne({ slug: slug, approved: true });
+    // Find destination by slug
+    const destination = await Destination.findOne({ slug: slug });
 
     if (!destination) {
       return res.status(404).json({
         success: false,
         error: 'Destination not found'
+      });
+    }
+
+    // Authorization check: 
+    // Allow if approved OR if user is the creator OR if user is an admin
+    const isApproved = destination.approved === true;
+    const isCreator = req.user && destination.createdBy && destination.createdBy.toString() === req.user.id.toString();
+    const isAdmin = req.user && req.user.role === 'admin';
+
+    if (!isApproved && !isCreator && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        error: 'This destination is pending approval and is not yet public.'
       });
     }
 

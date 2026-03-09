@@ -8,51 +8,73 @@ const path = require('path');
 const authRoutes = require('./routes/authRoutes');
 const destinationRoutes = require('./routes/destinationRoutes');
 const globalErrorHandler = require('./middleware/errorMiddleware');
+const chatRoutes = require('./routes/chatRoutes');
 
-// Configuration check on startup
-console.log('\n=== BACKEND CONFIGURATION CHECK ===');
+// Basic environment check
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-  console.error('❌ Missing required environment variables:');
-  missingVars.forEach(varName => console.error(`   - ${varName}`));
-  console.error('\n⚠️  Please check your backend/.env file!\n');
-} else {
-  console.log('✅ All required environment variables are set');
-  console.log(`   GOOGLE_CLIENT_ID: ${process.env.GOOGLE_CLIENT_ID?.substring(0, 20)}...`);
-  console.log(`   JWT_SECRET: ${process.env.JWT_SECRET ? '***SET***' : 'MISSING'}`);
-  console.log(`   MONGO_URI: ${process.env.MONGO_URI ? '***SET***' : 'MISSING'}`);
+  console.error('Missing required environment variables:', missingVars.join(', '));
+  console.error('Please verify your .env file.');
 }
-console.log('===================================\n');
 
 const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+  }
+});
 
-// Connect to MongoDB
+// Socket connection management
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+
+  socket.on('join_chat', (chatId) => {
+    socket.join(chatId);
+  });
+
+  socket.on('leave_chat', (chatId) => {
+    socket.leave(chatId);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
+// Accessibility for socket instance
+app.set('io', io);
+
+// Database connection
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
-    console.log('✅ MongoDB connected successfully');
-    // Auto-seed destinations if none are approved
+    console.log('Database connected');
+    
+    // Seed basic data if the collection is empty
     try {
       const Destination = require('./models/Destination');
       const count = await Destination.countDocuments({ approved: true });
       if (count === 0) {
-        console.log('🌱 No approved destinations found. Seeding base data...');
+        console.log('Seeding initial destination data...');
         const seedDestinations = require('./scripts/seedDestinations');
         await seedDestinations();
       }
     } catch (err) {
-      console.error('⚠️ Auto-seeding check failed:', err);
+      console.error('Seeding check failed:', err);
     }
   })
   .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
+    console.error('Database connection error:', err);
     process.exit(1);
   });
 
-// CORS - Enhanced for Google FedCM support
+// CORS configuration for local development and Google Auth
 app.use(cors({
-  origin: 'http://localhost:5173', // frontend URL
+  origin: 'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
@@ -60,104 +82,61 @@ app.use(cors({
     'Authorization',
     'Accept',
     'Origin',
-    'X-Requested-With',
-    'Sec-Fetch-Dest',
-    'Sec-Fetch-Mode',
-    'Sec-Fetch-Site',
-    'Sec-Fetch-User'
+    'X-Requested-With'
   ],
   exposedHeaders: ['Authorization'],
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
 
-// Note: We don't set Cross-Origin-Opener-Policy headers
-// as they can interfere with Google Sign-In popups
-
-// Request logging middleware (for debugging)
-app.use((req, res, next) => {
-  if (req.path === '/api/auth/google-login' && req.method === 'POST') {
-    console.log(`\n=== INCOMING REQUEST ===`);
-    console.log(`Method: ${req.method}`);
-    console.log(`Path: ${req.path}`);
-    console.log(`Headers:`, JSON.stringify(req.headers, null, 2));
-  }
-  next();
-});
-
-// Middleware
+// Request middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-// Serve uploaded files
+// Assets
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
-// Existing auth routes (includes google-login route)
+// Routes mapping
 app.use('/api/auth', authRoutes);
-
-// Destination routes
 app.use('/api/destinations', destinationRoutes);
 app.use('/api/admin', require('./routes/adminRoutes'));
-
-// Profile routes
 app.use('/api/profiles', require('./routes/profileRoutes'));
 app.use('/api/favorites', require('./routes/favoriteRoutes'));
-
-// Guide and Booking routes
 app.use('/api/guides', require('./routes/guideRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
-
-// Contributor routes (Public)
+app.use('/api/groups', require('./routes/groupRoutes'));
 app.use('/api/contributors', require('./routes/contributorRoutes'));
+app.use('/api/chats', chatRoutes);
 
-// Test routes
+// Health check and root endpoints
 app.get('/', (req, res) => {
   res.json({
-    message: 'Nepal Hidden Gems API',
-    status: 'running',
-    version: '1.0.0',
-    endpoints: {
-      home: '/',
-      auth: '/api/auth',
-      authTest: '/api/auth/test',
-      googleLogin: '/api/auth/google-login',
-      destinations: '/api/destinations',
-      destinationBySlug: '/api/destinations/:slug'
-    }
+    name: 'Nepal Hidden Gems API',
+    status: 'online',
+    version: '1.0.0'
   });
 });
 
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'API test successful!' });
+  res.json({ message: 'API connection active' });
 });
 
-// Google OAuth configuration test endpoint
 app.get('/api/auth/google-config', (req, res) => {
   res.json({
     hasClientId: !!process.env.GOOGLE_CLIENT_ID,
-    clientIdPrefix: process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + '...',
     hasJwtSecret: !!process.env.JWT_SECRET,
     hasMongoUri: !!process.env.MONGO_URI,
     mongoConnected: mongoose.connection.readyState === 1
   });
 });
 
-// Global Error Handler
+// Post-route error handling
 app.use(globalErrorHandler);
 
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`   Server running at http://localhost:${PORT}`);
-  console.log('   Available endpoints:');
-  console.log(`   GET  http://localhost:${PORT}/`);
-  console.log(`   GET  http://localhost:${PORT}/api/test`);
-  console.log(`   GET  http://localhost:${PORT}/api/auth/test`);
-  console.log(`   POST http://localhost:${PORT}/api/auth/register`);
-  console.log(`   POST http://localhost:${PORT}/api/auth/login`);
-  console.log(`   POST http://localhost:${PORT}/api/auth/google-login`);
-  console.log(`   GET  http://localhost:${PORT}/api/destinations`);
-  console.log(`   GET  http://localhost:${PORT}/api/destinations/:slug`);
-  console.log(`   CORS enabled for: http://localhost:5173`);
+server.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });
+
+
+

@@ -11,11 +11,12 @@ mongoose.connect(process.env.MONGO_URI)
     console.log('Checking destinations...');
     
     try {
-      const destinations = await Destination.find({});
+      const destinations = await Destination.find({}).populate('createdBy', 'email');
       console.log(`Found ${destinations.length} destinations:`);
       
       destinations.forEach(d => {
-        console.log(`- Name: ${d.name}, Slug: ${d.slug}, Approved: ${d.approved}`);
+        const creatorEmail = d.createdBy ? d.createdBy.email : 'Unknown';
+        console.log(`- Name: ${d.name}, Slug: ${d.slug}, Approved: ${d.approved}, Status: ${d.status}, CreatedBy: ${creatorEmail}`);
       });
       
       if (destinations.length === 0) {

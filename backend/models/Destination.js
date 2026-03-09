@@ -20,6 +20,7 @@ const DestinationSchema = new mongoose.Schema({
   specialty: { type: String },
   hospitality: { type: String },
   accommodation: { type: String },
+  tips: { type: String },
   image: { type: String }, // Main image for card display
   multiple_images: [{ type: String }], // Array of image URLs for gallery
   guides: [GuideSchema],

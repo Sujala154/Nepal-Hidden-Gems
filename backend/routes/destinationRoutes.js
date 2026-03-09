@@ -17,9 +17,11 @@ const {
 router.get('/my-content', auth, getMyDestinations);
 router.get('/user/my-destinations', auth, getMyDestinations);
 
-// Public routes
+const optionalAuth = require('../middleware/optionalAuth');
+
+// Public routes (with optional auth for creator access)
 router.get('/', getDestinations);
-router.get('/:slug', getDestinationBySlug);
+router.get('/:slug', optionalAuth, getDestinationBySlug);
 
 // All routes below also require login
 router.use(auth);

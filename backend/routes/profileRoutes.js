@@ -1,16 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const { getProfile, updateProfile } = require('../controllers/profileController');
+const { 
+    getProfile, 
+    updateProfile, 
+    getNotifications, 
+    markNotificationsRead 
+} = require('../controllers/profileController');
 
 // @route   GET api/profiles/me
-// @desc    Get current user's profile
-// @access  Private
 router.get('/me', authMiddleware, getProfile);
 
 // @route   PATCH api/profiles/update
-// @desc    Update user profile
-// @access  Private
 router.patch('/update', authMiddleware, updateProfile);
+
+// @route   GET api/profiles/notifications
+router.get('/notifications', authMiddleware, getNotifications);
+
+// @route   PUT api/profiles/notifications/read
+router.put('/notifications/read', authMiddleware, markNotificationsRead);
 
 module.exports = router;

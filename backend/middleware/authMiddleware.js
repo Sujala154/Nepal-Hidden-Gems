@@ -19,6 +19,7 @@ const authMiddleware = async (req, res, next) => {
     req.user = {
       id: user._id,
       email: user.email,
+      name: user.name, // Added name for notifications
       role: user.role,
       verified: user.verified,
     };

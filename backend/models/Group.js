@@ -4,16 +4,19 @@ const GroupSchema = new mongoose.Schema({
   groupName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    default: function() {
+      return `Trip to ${this.destination}`;
+    }
   },
   destination: {
-    type: String, // Can be a specific destination name or general location
+    type: String,
     required: true
   },
-  // Optional: Link to a Destination document if it exists in our DB
-  destinationId: {
+  guide: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Destination'
+    ref: 'User',
+    required: true
   },
   date: {
     type: Date,
@@ -22,12 +25,11 @@ const GroupSchema = new mongoose.Schema({
   maxMembers: {
     type: Number,
     required: true,
-    min: 2
+    default: 4 // Default max for a split group
   },
   estimatedCost: {
     type: Number,
-    required: true,
-    min: 0
+    required: true
   },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
@@ -39,7 +41,15 @@ const GroupSchema = new mongoose.Schema({
     status: { type: String, enum: ['accepted', 'pending'], default: 'accepted' },
     joinedAt: { type: Date, default: Date.now }
   }],
-  // We can store messages here or just query them by groupId
+  status: {
+    type: String,
+    enum: ['open', 'full', 'closed'],
+    default: 'open'
+  }
 }, { timestamps: true });
+
+// Ensure we don't have multiple groups for the SAME guide on the SAME day
+// This simplifies the logic: one guide can only do one group trip per day
+GroupSchema.index({ guide: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('Group', GroupSchema);

@@ -29,13 +29,22 @@ const BookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Paid', 'Pending', 'Cancelled', 'Unpaid'],
+    enum: ['Paid', 'Pending', 'Cancelled', 'Unpaid', 'Accepted', 'Declined'],
     default: 'Pending'
   },
   paymentStatus: {
     type: String,
     enum: ['Paid', 'Unpaid'],
     default: 'Unpaid'
+  },
+  type: {
+    type: String,
+    enum: ['private', 'split'],
+    default: 'private'
+  },
+  groupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Group'
   }
 }, { timestamps: true });
 
