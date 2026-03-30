@@ -1,5 +1,6 @@
 const Destination = require("../models/Destination");
 const User = require("../models/User");
+const Payment = require("../models/Payment");
 
 // @desc    Get all pending destinations for moderation
 // @route   GET /api/admin/destinations/pending
@@ -223,5 +224,53 @@ exports.getContributorDestinations = async (req, res) => {
   } catch (error) {
     console.error("getContributorDestinations error", error);
     res.status(500).json({ success: false, error: "Failed to fetch contributor destinations" });
+  }
+};
+
+// @desc    Get all payments
+// @route   GET /api/admin/payments
+// @access  Admin only
+exports.getAllPayments = async (req, res) => {
+  try {
+    const payments = await Payment.find({})
+      .populate('traveler', 'name email')
+      .populate('guide', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: payments
+    });
+  } catch (error) {
+    console.error("getAllPayments error", error);
+    res.status(500).json({ success: false, error: "Failed to fetch payments" });
+  }
+};
+
+// @desc    Release payout to guide
+// @route   PUT /api/admin/payments/:id/release
+// @access  Admin only
+exports.releasePayment = async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) {
+      return res.status(404).json({ success: false, error: "Payment not found" });
+    }
+
+    if (payment.status === 'Released') {
+      return res.status(400).json({ success: false, error: "Payment already released" });
+    }
+
+    payment.status = 'Released';
+    await payment.save();
+
+    res.json({
+      success: true,
+      message: "Payout released successfully",
+      data: payment
+    });
+  } catch (error) {
+    console.error("releasePayment error", error);
+    res.status(500).json({ success: false, error: "Failed to release payout" });
   }
 };

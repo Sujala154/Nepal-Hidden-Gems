@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const destinationRoutes = require('./routes/destinationRoutes');
 const globalErrorHandler = require('./middleware/errorMiddleware');
 const chatRoutes = require('./routes/chatRoutes');
+const esewaRoutes = require('./routes/esewaRoutes');
 
 // Basic environment check
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID'];
@@ -107,6 +108,7 @@ app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/groups', require('./routes/groupRoutes'));
 app.use('/api/contributors', require('./routes/contributorRoutes'));
 app.use('/api/chats', chatRoutes);
+app.use('/api/esewa', esewaRoutes);
 
 // Health check and root endpoints
 app.get('/', (req, res) => {

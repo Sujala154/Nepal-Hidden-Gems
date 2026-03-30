@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Payment = require("../models/Payment");
 
 // @desc    Get guide by ID
 // @route   GET /api/guides/:id
@@ -38,5 +39,45 @@ exports.getAllGuides = async (req, res) => {
   } catch (error) {
     console.error("getAllGuides error", error);
     res.status(500).json({ success: false, error: "Failed to fetch guides" });
+  }
+};
+
+// @desc    Get guide earnings
+// @route   GET /api/guides/me/earnings
+// @access  Private (Guide)
+exports.getMyEarnings = async (req, res) => {
+  try {
+    const payments = await Payment.find({ guide: req.user.id })
+      .populate('bookingId', 'destinationName type date')
+      .sort({ createdAt: -1 });
+
+    // Calculate stats
+    let totalRevenue = 0;
+    let pendingPayouts = 0;
+    let completedPayouts = 0;
+
+    payments.forEach(payment => {
+      // Guide revenue is their share
+      totalRevenue += payment.guideShare;
+      
+      if (payment.status === 'Pending') {
+        pendingPayouts += payment.guideShare;
+      } else if (payment.status === 'Released') {
+        completedPayouts += payment.guideShare;
+      }
+    });
+
+    res.json({
+      success: true,
+      stats: {
+        totalRevenue,
+        pendingPayouts,
+        completedPayouts
+      },
+      data: payments
+    });
+  } catch (error) {
+    console.error("getMyEarnings error", error);
+    res.status(500).json({ success: false, error: "Failed to fetch earnings" });
   }
 };
