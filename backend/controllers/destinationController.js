@@ -77,7 +77,7 @@ exports.createDestination = async (req, res) => {
     // Handle multiple image uploads
     let imagePaths = [];
     if (req.files && req.files.length > 0) {
-      imagePaths = req.files.map(file => `/uploads/destinations/${file.filename}`);
+      imagePaths = req.files.map(file => file.path);
     } else if (req.body.image) {
       // Fallback for URL-based images (e.g. from seed)
       imagePaths = [req.body.image];
@@ -164,7 +164,7 @@ exports.updateDestination = async (req, res) => {
     
     // 2. Add new uploaded files
     if (req.files && req.files.length > 0) {
-      const newPaths = req.files.map(file => `/uploads/destinations/${file.filename}`);
+      const newPaths = req.files.map(file => file.path);
       updatedImages = [...updatedImages, ...newPaths];
     }
 
