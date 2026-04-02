@@ -12,7 +12,9 @@ const {
   getStats,
   getContributorDestinations,
   getAllPayments,
-  releasePayment
+  releasePayment,
+  toggleUserBan,
+  deleteUser
 } = require("../controllers/adminController");
 
 // All routes require admin role
@@ -32,6 +34,8 @@ router.get("/users/guides", getAllGuides);
 router.get("/users/contributors", getAllContributors);
 router.get("/users/travelers", getAllTravelers);
 router.get("/users/:id/destinations", getContributorDestinations);
+router.put("/users/:id/ban", toggleUserBan);
+router.delete("/users/:id", deleteUser);
 
 // Payments & Financials
 router.get("/payments", getAllPayments);

@@ -144,6 +144,14 @@ exports.login = catchAsync(async (req, res, next) => {
   
   if (!user) return res.status(401).json({ success: false, error: "Invalid credentials." });
 
+  if (user.isBanned) {
+    return res.status(403).json({ 
+      success: false, 
+      error: "Your account has been banned.", 
+      reason: user.banReason || "Violation of terms" 
+    });
+  }
+
   if (!user.password) {
     return res.status(400).json({
       success: false,

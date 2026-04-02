@@ -16,6 +16,14 @@ const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ success: false, error: "Unauthorized" });
     }
 
+    if (user.isBanned) {
+      return res.status(403).json({ 
+        success: false, 
+        error: "Your account has been banned.", 
+        reason: user.banReason || "Violation of terms" 
+      });
+    }
+
     req.user = {
       id: user._id,
       email: user.email,

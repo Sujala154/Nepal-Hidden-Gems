@@ -31,6 +31,7 @@ const DestinationSchema = new mongoose.Schema({
   category: { type: String },
   visitors: { type: Number, default: 0 },
   rating: { type: Number, min: 0, max: 5, default: 0 },
+  numReviews: { type: Number, default: 0 },
   approved: { type: Boolean, default: false },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   rejectionTitle: { type: String },

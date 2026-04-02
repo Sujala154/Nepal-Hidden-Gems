@@ -274,3 +274,73 @@ exports.releasePayment = async (req, res) => {
     res.status(500).json({ success: false, error: "Failed to release payout" });
   }
 };
+
+// @desc    Toggle Ban Status of a User
+// @route   PUT /api/admin/users/:id/ban
+// @access  Admin only
+exports.toggleUserBan = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+    
+    // Prevent banning other admins
+    if (user.role === 'admin') {
+      return res.status(403).json({ success: false, error: "Cannot ban an admin user" });
+    }
+
+    const newBanStatus = !user.isBanned;
+    
+    // Create explicitly clean update object to avoid Mongoose parsing errors
+    const updateObj = { $set: { isBanned: newBanStatus } };
+    
+    if (newBanStatus && req.body && req.body.reason) {
+      updateObj.$set.banReason = req.body.reason;
+    } else {
+      updateObj.$unset = { banReason: 1 };
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id, 
+      updateObj,
+      { new: true, runValidators: false }
+    );
+
+    res.json({
+      success: true,
+      data: updatedUser,
+      message: `User ${updatedUser.isBanned ? 'banned' : 'unbanned'} successfully`
+    });
+  } catch (error) {
+    console.error("toggleUserBan error", error);
+    res.status(500).json({ success: false, error: "Failed to toggle user ban status" });
+  }
+};
+
+// @desc    Delete a User permanently
+// @route   DELETE /api/admin/users/:id
+// @access  Admin only
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // Prevent deleting other admins
+    if (user.role === 'admin') {
+      return res.status(403).json({ success: false, error: "Cannot delete an admin user" });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: "User deleted successfully"
+    });
+  } catch (error) {
+    console.error("deleteUser error", error);
+    res.status(500).json({ success: false, error: "Failed to delete user" });
+  }
+};
