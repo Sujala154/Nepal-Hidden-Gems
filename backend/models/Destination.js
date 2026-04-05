@@ -38,8 +38,7 @@ const DestinationSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
-// Index for faster slug lookups
-DestinationSchema.index({ slug: 1 });
 
+// Use timestamps for automatic createdAt and updatedAt fields
 module.exports = mongoose.model('Destination', DestinationSchema);
 
