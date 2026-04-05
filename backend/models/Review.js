@@ -21,6 +21,13 @@ const ReviewSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
+  },
+  reply: {
+    type: String,
+    trim: true
+  },
+  repliedAt: {
+    type: Date
   }
 }, { timestamps: true });
 
