@@ -2,6 +2,7 @@ const Chat = require('../models/Chat');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const { createNotification } = require('../utils/notificationHelper');
 
 // @desc    Send chat invite to a guide
 // @route   POST /api/chats/invite
@@ -21,22 +22,26 @@ exports.sendInvite = async (req, res) => {
         });
 
         if (chat) {
-            return res.json({ success: true, message: "Chat already exists", chat });
+            if (chat.status === 'active') {
+                return res.json({ success: true, message: "Chat already exists and is active", chat });
+            }
+            // If pending, allow re-sending the notification to "nudge" the guide
+            console.log(`[INVITE_LOG] Chat is pending. Re-sending notification to guide: ${guideId}`);
+        } else {
+            // Create a pending chat
+            chat = await Chat.create({
+                participants: [travelerId, guideId],
+                status: 'pending'
+            });
         }
-
-        // Create a pending chat
-        chat = await Chat.create({
-            participants: [travelerId, guideId],
-            status: 'pending'
-        });
 
         const sender = await User.findById(travelerId);
 
         // Create a notification for the guide
-        await Notification.create({
-            recipient: guideId,
-            sender: travelerId,
-            type: 'chat_invite',
+        await createNotification({
+            recipientId: guideId,
+            senderId: travelerId,
+            type: 'invite',
             title: 'New Chat Invitation',
             message: `${sender.name} wants to start a conversation with you regarding a trip.`,
             relatedId: chat._id

@@ -1,4 +1,5 @@
 const Destination = require('../models/Destination');
+const { createNotification, notifyAdmins } = require('../utils/notificationHelper');
 
 // Get destination by slug
 exports.getDestinationBySlug = async (req, res) => {
@@ -97,6 +98,15 @@ exports.createDestination = async (req, res) => {
     const destination = new Destination(destinationData);
     await destination.save();
 
+    // Trigger notification to admins
+    await notifyAdmins({
+      senderId: req.user.id,
+      type: 'destination_pending',
+      title: 'New Destination Pending Approval',
+      message: `A new destination "${destination.name}" has been submitted for review.`,
+      relatedId: destination._id
+    });
+
     res.status(201).json({
       success: true,
       data: destination
@@ -147,8 +157,11 @@ exports.updateDestination = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Destination not found' });
     }
 
-    // Check ownership
-    if (destination.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check ownership (Robust check)
+    const isOwner = destination.createdBy ? destination.createdBy.toString() === req.user.id.toString() : false;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, error: 'Not authorized to update this destination' });
     }
 
@@ -220,8 +233,11 @@ exports.deleteDestination = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Destination not found' });
     }
 
-    // Check ownership
-    if (destination.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check ownership (Robust check)
+    const isOwner = destination.createdBy ? destination.createdBy.toString() === req.user.id.toString() : false;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, error: 'Not authorized to delete this destination' });
     }
 

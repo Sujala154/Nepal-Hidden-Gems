@@ -1,6 +1,7 @@
 const Destination = require("../models/Destination");
 const User = require("../models/User");
 const Payment = require("../models/Payment");
+const { createNotification } = require('../utils/notificationHelper');
 
 // @desc    Get all pending destinations for moderation
 // @route   GET /api/admin/destinations/pending
@@ -43,6 +44,16 @@ exports.approveDestination = async (req, res) => {
     destination.status = 'approved';
     await destination.save();
 
+    // Trigger notification to contributor
+    await createNotification({
+      recipientId: destination.createdBy,
+      senderId: req.user.id,
+      type: 'destination_status',
+      title: 'Destination Approved!',
+      message: `Great news! Your destination submission "${destination.name}" has been approved and is now live.`,
+      relatedId: destination._id
+    });
+
     res.json({
       success: true,
       data: destination,
@@ -74,6 +85,16 @@ exports.rejectDestination = async (req, res) => {
       destination.rejectionReason = req.body.rejectionReason;
     }
     await destination.save();
+
+    // Trigger notification to contributor
+    await createNotification({
+      recipientId: destination.createdBy,
+      senderId: req.user.id,
+      type: 'destination_status',
+      title: 'Destination Submission Status',
+      message: `Your destination submission "${destination.name}" requires changes: ${req.body.rejectionTitle || 'Pending Review'}.`,
+      relatedId: destination._id
+    });
 
     res.json({
       success: true,
@@ -263,6 +284,15 @@ exports.releasePayment = async (req, res) => {
 
     payment.status = 'Released';
     await payment.save();
+
+    // Trigger notification to guide
+    await createNotification({
+      recipientId: payment.guide,
+      type: 'payment',
+      title: 'Payout Released!',
+      message: `Your payment of NPR ${payment.amount} has been released.`,
+      relatedId: payment._id
+    });
 
     res.json({
       success: true,

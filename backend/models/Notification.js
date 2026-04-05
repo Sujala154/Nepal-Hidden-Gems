@@ -9,11 +9,11 @@ const NotificationSchema = new mongoose.Schema({
   sender: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false // Optional as per Prompt 1 "if applicable"
   },
   type: {
     type: String,
-    enum: ['chat_invite', 'booking', 'system', 'booking_request', 'booking_update'],
+    enum: ['invite', 'booking', 'booking_update', 'destination_pending', 'destination_status', 'payment', 'system', 'other'],
     required: true
   },
   title: {
