@@ -4,7 +4,12 @@ const ReviewSchema = new mongoose.Schema({
   destination: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Destination',
-    required: true
+    required: false
+  },
+  guide: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,

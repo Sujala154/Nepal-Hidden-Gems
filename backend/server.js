@@ -110,6 +110,7 @@ app.use('/api/contributors', require('./routes/contributorRoutes'));
 app.use('/api/chats', chatRoutes);
 app.use('/api/esewa', esewaRoutes);
 app.use('/api/reviews', require('./routes/reviewRoutes'));
+app.use('/api/tours', require('./routes/tourRoutes'));
 
 // Health check and root endpoints
 app.get('/', (req, res) => {
