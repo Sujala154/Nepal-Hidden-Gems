@@ -88,7 +88,7 @@ exports.deleteTour = async (req, res) => {
     }
 
     // Auth check: ownership or admin
-    if (tour.guide.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (tour.guide.toString() !== req.user.id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, error: 'Not authorized' });
     }
 
