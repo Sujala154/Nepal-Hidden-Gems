@@ -437,3 +437,239 @@ exports.cancelBooking = async (req, res) => {
     res.status(500).json({ success: false, error: "Failed to cancel booking" });
   }
 };
+
+// @desc    User B (Requester) sends a join request to User A (Search originator)
+// @route   POST /api/bookings/:id/request-join-group
+// @access  Private (Any traveler searching for a partner)
+exports.requestJoinGroup = async (req, res) => {
+  try {
+    const { targetBookingId } = req.body;
+    const requesterBookingId = req.params.id;
+
+    // Fetch both bookings
+    const requesterBooking = await Booking.findById(requesterBookingId).populate('user', 'name profileImage');
+    const targetBooking = await Booking.findById(targetBookingId).populate('user', 'name profileImage');
+
+    if (!requesterBooking || !targetBooking) {
+      return res.status(404).json({ success: false, error: "Booking not found" });
+    }
+
+    // Verify requester is the booking owner
+    if (requesterBooking.user._id.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ success: false, error: "Unauthorized: You don't own this booking" });
+    }
+
+    // Validate conditions for joining
+    if (requesterBooking.type !== 'split') {
+      return res.status(400).json({ success: false, error: "Only split bookings can request to join groups" });
+    }
+
+    if (targetBooking.type !== 'split') {
+      return res.status(400).json({ success: false, error: "Target booking is not a split booking" });
+    }
+
+    if (targetBooking.matchStatus !== 'searching') {
+      return res.status(400).json({ success: false, error: "Target booking is not currently searching for a partner" });
+    }
+
+    if (requesterBooking.matchStatus !== 'searching') {
+      return res.status(400).json({ success: false, error: "Your booking is not in searching state" });
+    }
+
+    // Check if same guide and date
+    if (targetBooking.guide.toString() !== requesterBooking.guide.toString()) {
+      return res.status(400).json({ success: false, error: "Different guides selected" });
+    }
+
+    if (new Date(targetBooking.date).getTime() !== new Date(requesterBooking.date).getTime()) {
+      return res.status(400).json({ success: false, error: "Different dates selected" });
+    }
+
+    // Update Requester Booking (User B)
+    requesterBooking.matchStatus = 'pending_approval';
+    requesterBooking.pendingPartnerId = targetBooking.user._id;
+    await requesterBooking.save();
+
+    // Add to Target Booking's pending requests list
+    targetBooking.pendingRequestsList = targetBooking.pendingRequestsList || [];
+    
+    // Check if already in pending list
+    const alreadyPending = targetBooking.pendingRequestsList.some(
+      r => r.userId.toString() === requesterBooking.user._id.toString()
+    );
+
+    if (!alreadyPending) {
+      targetBooking.pendingRequestsList.push({
+        userId: requesterBooking.user._id,
+        requesterBookingId: requesterBooking._id,
+        userName: requesterBooking.user.name,
+        profileImage: requesterBooking.user.profileImage,
+        requestedAt: new Date()
+      });
+      await targetBooking.save();
+    }
+
+    // Notify Target User (User A)
+    await Notification.create({
+      recipient: targetBooking.user._id,
+      sender: requesterBooking.user._id,
+      type: 'booking_request',
+      title: '🔔 A Traveler Wants to Join Your Group!',
+      message: `${requesterBooking.user.name} wants to join your ${requesterBooking.destinationName} trip on ${new Date(requesterBooking.date).toLocaleDateString()}. Review their profile and accept or decline.`,
+      relatedId: targetBooking._id
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        requesterBooking,
+        message: "Join request sent! Waiting for user's response."
+      }
+    });
+  } catch (error) {
+    console.error("requestJoinGroup error:", error);
+    res.status(500).json({ success: false, error: "Failed to send join request" });
+  }
+};
+
+// @desc    User A (Search originator) accepts or rejects a join request from User B
+// @route   PUT /api/bookings/:id/respond-to-join-request
+// @access  Private (Only the searching traveler)
+exports.respondToJoinRequest = async (req, res) => {
+  try {
+    const { requesterBookingId, response } = req.body;
+
+    if (!['accept', 'reject'].includes(response)) {
+      return res.status(400).json({ success: false, error: "Response must be 'accept' or 'reject'" });
+    }
+
+    const targetBooking = await Booking.findById(req.params.id).populate('user', 'name email profileImage');
+    const requesterBooking = await Booking.findById(requesterBookingId).populate('user', 'name email profileImage');
+
+    if (!targetBooking || !requesterBooking) {
+      return res.status(404).json({ success: false, error: "Booking not found" });
+    }
+
+    // Verify current user is the target booking owner
+    if (targetBooking.user._id.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ success: false, error: "Unauthorized: You can only respond to requests on your own booking" });
+    }
+
+    // Find the requester in pending list
+    const requestIndex = targetBooking.pendingRequestsList.findIndex(
+      r => r.userId.toString() === requesterBooking.user._id.toString()
+    );
+
+    if (requestIndex === -1) {
+      return res.status(404).json({ success: false, error: "Join request not found in pending list" });
+    }
+
+    if (response === 'accept') {
+      // ACCEPT THE REQUEST - Two-way match finalized
+      
+      // Update Target Booking (User A)
+      targetBooking.matchStatus = 'matched';
+      targetBooking.acceptedPartnerId = requesterBooking.user._id;
+      targetBooking.pendingRequestsList = []; // Clear all pending requests
+      targetBooking.suggestedPartnerId = null;
+      await targetBooking.save();
+
+      // Update Requester Booking (User B)
+      requesterBooking.matchStatus = 'matched';
+      requesterBooking.acceptedPartnerId = targetBooking.user._id;
+      requesterBooking.pendingPartnerId = null;
+      requesterBooking.suggestedPartnerId = null;
+      await requesterBooking.save();
+
+      // Notify Requester about acceptance
+      await Notification.create({
+        recipient: requesterBooking.user._id,
+        sender: targetBooking.user._id,
+        type: 'booking_update',
+        title: '✅ Join Request Accepted!',
+        message: `${targetBooking.user.name} accepted your join request for ${requesterBooking.destinationName}! You're now travel partners. 🎉`,
+        relatedId: targetBooking._id
+      });
+
+      // Notify Guide about the group
+      await Notification.create({
+        recipient: targetBooking.guide,
+        sender: null,
+        type: 'booking_update',
+        title: 'Group Match Finalized',
+        message: `${targetBooking.user.name} and ${requesterBooking.user.name} have matched for ${targetBooking.destinationName} on ${new Date(targetBooking.date).toLocaleDateString()}.`,
+        relatedId: targetBooking._id
+      });
+
+      res.json({
+        success: true,
+        data: {
+          targetBooking,
+          requesterBooking
+        },
+        message: "Join request accepted! Partners matched successfully."
+      });
+    } else {
+      // REJECT THE REQUEST
+      
+      // Remove from pending list
+      targetBooking.pendingRequestsList.splice(requestIndex, 1);
+      await targetBooking.save();
+
+      // Revert Requester Booking back to searching
+      requesterBooking.matchStatus = 'searching';
+      requesterBooking.pendingPartnerId = null;
+      await requesterBooking.save();
+
+      // Notify Requester about rejection
+      await Notification.create({
+        recipient: requesterBooking.user._id,
+        sender: targetBooking.user._id,
+        type: 'booking_update',
+        title: '❌ Join Request Declined',
+        message: `${targetBooking.user.name} declined your join request for ${requesterBooking.destinationName}. Don't worry, keep searching - the right partner is out there!`,
+        relatedId: targetBooking._id
+      });
+
+      res.json({
+        success: true,
+        data: {
+          targetBooking,
+          requesterBooking
+        },
+        message: "Join request rejected. Requester has been notified and returned to searching."
+      });
+    }
+  } catch (error) {
+    console.error("respondToJoinRequest error:", error);
+    res.status(500).json({ success: false, error: "Failed to respond to join request" });
+  }
+};
+
+// @desc    Get pending join requests for a booking
+// @route   GET /api/bookings/:id/pending-requests
+// @access  Private
+exports.getPendingJoinRequests = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ success: false, error: "Booking not found" });
+    }
+
+    if (booking.user.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ success: false, error: "Unauthorized" });
+    }
+
+    const pendingRequests = booking.pendingRequestsList || [];
+
+    res.json({
+      success: true,
+      data: pendingRequests,
+      count: pendingRequests.length
+    });
+  } catch (error) {
+    console.error("getPendingJoinRequests error:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch pending requests" });
+  }
+};

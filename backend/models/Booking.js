@@ -49,7 +49,7 @@ const BookingSchema = new mongoose.Schema({
   // NEW: Opt-in matchmaking fields
   matchStatus: {
     type: String,
-    enum: ['searching', 'partner_found', 'matched', 'private', 'cancelled'],
+    enum: ['searching', 'pending_approval', 'partner_found', 'matched', 'private', 'cancelled'],
     default: 'private'
   },
   searchStartTime: {
@@ -57,6 +57,35 @@ const BookingSchema = new mongoose.Schema({
     default: null
   },
   suggestedPartnerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  // NEW: Two-way matching fields
+  pendingPartnerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  pendingRequestsList: [
+    {
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      requesterBookingId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Booking'
+      },
+      userName: String,
+      profileImage: String,
+      requestedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
+  acceptedPartnerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     default: null
