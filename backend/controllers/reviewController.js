@@ -85,6 +85,7 @@ exports.getGuideDashboardReviews = async (req, res) => {
     const reviews = await Review.find({ guide: req.user.id })
       .populate('user', 'name avatar profileImage')
       .sort('-createdAt');
+    console.log('Guide dashboard reviews:', reviews);
     res.json({ success: true, data: reviews || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

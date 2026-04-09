@@ -45,6 +45,21 @@ const BookingSchema = new mongoose.Schema({
   groupId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Group'
+  },
+  // NEW: Opt-in matchmaking fields
+  matchStatus: {
+    type: String,
+    enum: ['searching', 'partner_found', 'matched', 'private', 'cancelled'],
+    default: 'private'
+  },
+  searchStartTime: {
+    type: Date,
+    default: null
+  },
+  suggestedPartnerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   }
 }, { timestamps: true });
 
