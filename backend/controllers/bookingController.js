@@ -90,40 +90,10 @@ exports.getMyBookings = async (req, res) => {
       }
 
       // 2. Self-heal Group Chat if booking is accepted
-      if (b.status === 'Accepted' && b.type === 'split' && b.groupId) {
+      if (b.status === 'Accepted') {
         try {
-          // b.groupId might be an ID or populated object
-          const currentGroupId = b.groupId._id || b.groupId;
-          let chat = await Chat.findOne({ isGroup: true, groupId: currentGroupId });
-          
-          if (!chat) {
-              const group = await Group.findById(currentGroupId).populate('members.user');
-              if (group) {
-                  const participantIds = [
-                      group.guide, 
-                      ...group.members.map(m => m.user?._id || m.user)
-                  ].filter(Boolean);
-
-                  chat = await Chat.create({
-                      participants: participantIds,
-                      isGroup: true,
-                      groupId: group._id,
-                      status: 'active',
-                      metadata: {
-                          destinationName: group.destination,
-                          groupTitle: `${group.destination} Group Trip`
-                      }
-                  });
-
-                  const systemMsg = await Message.create({
-                      chat: chat._id,
-                      sender: group.guide,
-                      content: `Hi everyone! Your group for ${group.destination} is now active. Feel free to coordinate your trip here!`
-                  });
-                  chat.lastMessage = systemMsg._id;
-                  await chat.save();
-              }
-          }
+          const { initializeBookingChat } = require('../utils/chatHelper');
+          await initializeBookingChat(b);
         } catch (chatErr) {
           console.error("Self-heal chat error:", chatErr);
         }
@@ -188,53 +158,15 @@ exports.updateBookingStatus = async (req, res) => {
     booking.status = status;
     await booking.save();
 
-    // Group Chat Logic: Triggered when guide accepts a split booking
-    if (status === 'Accepted' && booking.type === 'split' && booking.groupId) {
-        try {
-            const Group = require('../models/Group');
-            const Chat = require('../models/Chat');
-            const Message = require('../models/Message');
-
-            const group = await Group.findById(booking.groupId).populate('members.user');
-            if (group) {
-                // Find or create group chat
-                let chat = await Chat.findOne({ 
-                    isGroup: true, 
-                    groupId: group._id 
-                });
-
-                const participantIds = [group.guide, ...group.members.map(m => m.user._id)];
-
-                if (!chat) {
-                    chat = await Chat.create({
-                        participants: participantIds,
-                        isGroup: true,
-                        groupId: group._id,
-                        status: 'active',
-                        metadata: {
-                            destinationName: group.destination,
-                            groupTitle: `${group.destination} Group Trip`
-                        }
-                    });
-
-                    // Add a system welcome message
-                    const systemMsg = await Message.create({
-                        chat: chat._id,
-                        sender: group.guide, // Guide acts as host
-                        content: `Hi everyone! Your group for ${group.destination} is now active. Feel free to coordinate your trip here!`
-                    });
-                    chat.lastMessage = systemMsg._id;
-                    await chat.save();
-                } else {
-                    // Update participants in case new person joined
-                    chat.participants = participantIds;
-                    await chat.save();
-                }
-            }
-        } catch (chatError) {
-            console.error("Failed to setup group chat:", chatError);
-            // Don't fail the whole request if chat fails
-        }
+    // Chat Logic: Initialize appropriate chat based on booking type
+    if (status === 'Accepted') {
+      try {
+        const { initializeBookingChat } = require('../utils/chatHelper');
+        await initializeBookingChat(booking);
+      } catch (chatError) {
+        console.error("Failed to initialize booking chat:", chatError);
+        // Don't fail the whole request if chat fails
+      }
     }
 
     // Notify the user
@@ -435,6 +367,48 @@ exports.cancelBooking = async (req, res) => {
   } catch (error) {
     console.error("cancelBooking error", error);
     res.status(500).json({ success: false, error: "Failed to cancel booking" });
+  }
+};
+
+// @desc    Get or initialize chat for a booking
+// @route   GET /api/bookings/:id/chat
+// @access  Private (Booking owner or Guide)
+exports.getOrInitializeBookingChat = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ success: false, error: "Booking not found" });
+    }
+
+    // Check authorization
+    const isBookingOwner = booking.user.toString() === req.user.id.toString();
+    const isGuide = booking.guide.toString() === req.user.id.toString();
+
+    if (!isBookingOwner && !isGuide) {
+      return res.status(403).json({ success: false, error: "Unauthorized" });
+    }
+
+    // Check if booking is accepted
+    if (booking.status !== 'Accepted') {
+      return res.status(400).json({ success: false, error: "Booking must be accepted before initializing chat" });
+    }
+
+    const { initializeBookingChat } = require('../utils/chatHelper');
+    const chat = await initializeBookingChat(booking);
+
+    if (!chat) {
+      return res.status(400).json({ success: false, error: "Failed to initialize chat. Please check booking details." });
+    }
+
+    res.json({
+      success: true,
+      data: chat,
+      message: `${booking.type === 'private' ? '1-on-1 chat' : 'Group chat'} initialized successfully`
+    });
+  } catch (error) {
+    console.error("getOrInitializeBookingChat error:", error);
+    res.status(500).json({ success: false, error: "Failed to initialize booking chat" });
   }
 };
 

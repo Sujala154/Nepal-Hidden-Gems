@@ -11,7 +11,8 @@ const {
     cancelBooking,
     requestJoinGroup,
     respondToJoinRequest,
-    getPendingJoinRequests
+    getPendingJoinRequests,
+    getOrInitializeBookingChat
 } = require("../controllers/bookingController");
 
 // All booking routes require authentication
@@ -33,5 +34,8 @@ router.put("/:id/cancel", cancelBooking);
 router.post("/:id/request-join-group", requestJoinGroup);
 router.put("/:id/respond-to-join-request", respondToJoinRequest);
 router.get("/:id/pending-requests", getPendingJoinRequests);
+
+// NEW: Chat initialization route
+router.get("/:id/chat", getOrInitializeBookingChat);
 
 module.exports = router;

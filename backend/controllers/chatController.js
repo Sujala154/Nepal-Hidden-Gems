@@ -85,13 +85,18 @@ exports.getChats = async (req, res) => {
 exports.acceptInvite = async (req, res) => {
     try {
         const chat = await Chat.findById(req.params.id);
+        console.log(`[ACCEPT_INVITE] user=${req.user.id} chatId=${req.params.id}`);
 
         if (!chat) {
             return res.status(404).json({ success: false, error: "Chat not found" });
         }
 
-        if (!chat.participants.includes(req.user.id.toString())) {
-            return res.status(403).json({ success: false, error: "Unauthorized" });
+        const participants = chat.participants.map(participant => participant.toString());
+        console.log(`[ACCEPT_INVITE] participants=${participants.join(',')}`);
+
+        if (!participants.includes(req.user.id.toString())) {
+            console.error(`[ACCEPT_INVITE] unauthorized: user not in participants`);
+            return res.status(403).json({ success: false, error: "Unauthorized - you are not a participant of this chat" });
         }
 
         chat.status = 'active';
@@ -124,7 +129,7 @@ exports.declineInvite = async (req, res) => {
             return res.status(404).json({ success: false, error: "Chat not found" });
         }
 
-        if (!chat.participants.includes(req.user.id.toString())) {
+        if (!chat.participants.some(participant => participant.toString() === req.user.id.toString())) {
             return res.status(403).json({ success: false, error: "Unauthorized" });
         }
 
@@ -202,7 +207,7 @@ exports.sendMessage = async (req, res) => {
             return res.status(404).json({ success: false, error: "Chat not found" });
         }
 
-        if (!chat.participants.includes(req.user.id.toString())) {
+        if (!chat.participants.some(participant => participant.toString() === req.user.id.toString())) {
             return res.status(403).json({ success: false, error: "Unauthorized" });
         }
 
