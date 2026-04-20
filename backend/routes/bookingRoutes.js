@@ -12,7 +12,8 @@ const {
     requestJoinGroup,
     respondToJoinRequest,
     getPendingJoinRequests,
-    getOrInitializeBookingChat
+    getOrInitializeBookingChat,
+    extendSearch
 } = require("../controllers/bookingController");
 
 // All booking routes require authentication
@@ -29,6 +30,7 @@ router.put("/:id/status", updateBookingStatus);
 router.put("/:id/respond-to-partner", respondToPartnerSuggestion);
 router.put("/:id/switch-to-private", switchToPrivateTour);
 router.put("/:id/cancel", cancelBooking);
+router.put("/:id/extend-search", extendSearch);
 
 // NEW: Two-way matching routes (Traveler-to-traveler requests)
 router.post("/:id/request-join-group", requestJoinGroup);

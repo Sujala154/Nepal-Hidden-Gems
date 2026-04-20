@@ -78,13 +78,15 @@ exports.verifyPayment = async (req, res) => {
                     transactionId: transaction_uuid,
                     totalPaid: Number(total_amount),
                     appFee: 500,
-                    guideShare: booking.amount, // X
-                    status: 'Pending'
+                    guideShare: booking.amount,
+                    paymentStatus: 'Paid',
+                    payoutStatus: 'Pending',
+                    esewaDetails: parsedData
                 });
             }
 
             // Redirect to frontend success page
-            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/success?txId=${transaction_uuid}&amount=${total_amount}`);
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/success?bookingId=${booking_id}&txId=${transaction_uuid}&amount=${total_amount}`);
         } else {
             // If eSewa verification fails, redirect to failure page
             return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/failure`);

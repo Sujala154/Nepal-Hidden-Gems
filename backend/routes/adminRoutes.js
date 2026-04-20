@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
 const role = require("../middleware/roleMiddleware");
+
 const {
   getPendingDestinations,
   approveDestination,
@@ -10,10 +11,14 @@ const {
   getAllContributors,
   getAllTravelers,
   getStats,
-  getContributorDestinations,
-  getAllPayments,
-  releasePayment
+  getContributorDestinations
 } = require("../controllers/adminController");
+
+const {
+  getAllPayments,
+  confirmRefund,
+  releasePayment
+} = require("../controllers/paymentController");
 
 // All routes require admin role
 router.use(auth);
@@ -36,5 +41,6 @@ router.get("/users/:id/destinations", getContributorDestinations);
 // Payments & Financials
 router.get("/payments", getAllPayments);
 router.put("/payments/:id/release", releasePayment);
+router.put("/payments/:id/confirm-refund", confirmRefund);
 
 module.exports = router;

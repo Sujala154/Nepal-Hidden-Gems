@@ -343,10 +343,25 @@ exports.cancelBooking = async (req, res) => {
 
     const previousStatus = booking.status;
     booking.status = 'Cancelled';
+
+    // Handle Refund state if already paid
+    if (booking.paymentStatus === 'Paid') {
+      booking.paymentStatus = 'Refund Pending';
+    }
+
     booking.matchStatus = 'cancelled';
     booking.suggestedPartnerId = null;
     booking.searchStartTime = null;
     await booking.save();
+
+    // If it was paid, also update the Payment record status
+    if (booking.paymentStatus === 'Refund Pending') {
+      const Payment = require('../models/Payment');
+      await Payment.findOneAndUpdate(
+        { bookingId: booking._id },
+        { paymentStatus: 'Refund Pending' }
+      );
+    }
 
     // Notify the other party
     const notificationRecipient = isTraveler ? booking.guide : booking.user;
@@ -645,5 +660,38 @@ exports.getPendingJoinRequests = async (req, res) => {
   } catch (error) {
     console.error("getPendingJoinRequests error:", error);
     res.status(500).json({ success: false, error: "Failed to fetch pending requests" });
+  }
+};
+
+// @desc    Extend partner search time
+// @route   PUT /api/bookings/:id/extend-search
+// @access  Private (Traveler)
+exports.extendSearch = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ success: false, error: "Booking not found" });
+    }
+
+    if (booking.user.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ success: false, error: "Unauthorized" });
+    }
+
+    if (booking.matchStatus !== 'searching') {
+      return res.status(400).json({ success: false, error: "Booking is not in searching state" });
+    }
+
+    booking.searchStartTime = new Date();
+    await booking.save();
+
+    res.json({
+      success: true,
+      data: booking,
+      message: "Search time extended successfully"
+    });
+  } catch (error) {
+    console.error("extendSearch error:", error);
+    res.status(500).json({ success: false, error: "Failed to extend search time" });
   }
 };
