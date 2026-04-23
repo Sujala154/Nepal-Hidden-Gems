@@ -17,7 +17,8 @@ const {
 const {
   getAllPayments,
   confirmRefund,
-  releasePayment
+  releasePayment,
+  initiateRefund
 } = require("../controllers/paymentController");
 
 // All routes require admin role
@@ -40,7 +41,8 @@ router.get("/users/:id/destinations", getContributorDestinations);
 
 // Payments & Financials
 router.get("/payments", getAllPayments);
-router.put("/payments/:id/release", releasePayment);
-router.put("/payments/:id/confirm-refund", confirmRefund);
+router.put("/payments/:paymentId/release", releasePayment);
+router.put("/payments/:paymentId/confirm-refund", confirmRefund);
+router.put("/payments/:paymentId/initiate-refund", initiateRefund);
 
 module.exports = router;

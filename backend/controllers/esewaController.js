@@ -83,13 +83,16 @@ exports.verifyPayment = async (req, res) => {
                     payoutStatus: 'Pending',
                     esewaDetails: parsedData
                 });
-            }
 
-            // Redirect to frontend success page
-            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/success?bookingId=${booking_id}&txId=${transaction_uuid}&amount=${total_amount}`);
+                // Redirect to frontend success page
+                return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/success?bookingId=${booking_id}&txId=${transaction_uuid}&amount=${total_amount}`);
+            } else {
+                console.error(`Booking not found during eSewa verification: ${booking_id}`);
+                return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/failure?reason=booking_not_found`);
+            }
         } else {
             // If eSewa verification fails, redirect to failure page
-            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/failure`);
+            return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/failure?reason=verification_failed`);
         }
 
     } catch (error) {

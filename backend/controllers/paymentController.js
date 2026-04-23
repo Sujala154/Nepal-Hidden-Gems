@@ -15,7 +15,7 @@ exports.getReceiptByBooking = async (req, res) => {
         }
 
         // Check if the requesting user is the traveler or an admin
-        if (payment.traveler._id.toString() !== req.user.id && req.user.role !== 'admin') {
+        if (payment.traveler._id.toString() !== req.user.id.toString() && req.user.role !== 'admin') {
             return res.status(403).json({ success: false, message: 'Unauthorized access to this receipt' });
         }
 
@@ -125,5 +125,91 @@ exports.releasePayment = async (req, res) => {
     } catch (error) {
         console.error("releasePayment error", error);
         res.status(500).json({ success: false, error: "Failed to release payout" });
+    }
+};
+
+// @desc    Initiate a refund (Admin)
+// @route   PUT /api/payments/admin/initiate-refund/:paymentId
+// @access  Private (Admin)
+exports.initiateRefund = async (req, res) => {
+    try {
+        const { reason } = req.body;
+        const payment = await Payment.findById(req.params.paymentId);
+
+        if (!payment) {
+            return res.status(404).json({ success: false, message: 'Payment record not found' });
+        }
+
+        if (payment.paymentStatus === 'Refunded') {
+            return res.status(400).json({ success: false, message: 'Payment is already refunded' });
+        }
+
+        payment.paymentStatus = 'Refund Pending';
+        payment.refundDetails = {
+            ...payment.refundDetails,
+            reason: reason || 'Initiated by Admin'
+        };
+
+        await payment.save();
+
+        // Also update the booking status to Cancelled and paymentStatus to Refund Pending
+        await Booking.findByIdAndUpdate(payment.bookingId, { 
+            status: 'Cancelled',
+            paymentStatus: 'Refund Pending' 
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Refund initiated and booking cancelled',
+            data: payment
+        });
+    } catch (error) {
+        console.error('initiateRefund Error:', error);
+        res.status(500).json({ success: false, message: 'Failed to initiate refund' });
+    }
+};
+
+// @desc    Request a refund (Traveler)
+// @route   PUT /api/payments/request-refund/:paymentId
+// @access  Private (Traveler)
+exports.requestRefund = async (req, res) => {
+    try {
+        const { reason } = req.body;
+        const payment = await Payment.findById(req.params.paymentId);
+
+        if (!payment) {
+            return res.status(404).json({ success: false, message: 'Payment record not found' });
+        }
+
+        if (payment.traveler.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+
+        if (payment.paymentStatus !== 'Paid') {
+            return res.status(400).json({ success: false, message: 'Refund can only be requested for paid bookings' });
+        }
+
+        payment.paymentStatus = 'Refund Pending';
+        payment.refundDetails = {
+            ...payment.refundDetails,
+            reason: reason || 'Requested by Traveler'
+        };
+
+        await payment.save();
+
+        // Update booking
+        await Booking.findByIdAndUpdate(payment.bookingId, { 
+            status: 'Cancelled',
+            paymentStatus: 'Refund Pending' 
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Refund request submitted and booking cancelled',
+            data: payment
+        });
+    } catch (error) {
+        console.error('requestRefund Error:', error);
+        res.status(500).json({ success: false, message: 'Failed to request refund' });
     }
 };
