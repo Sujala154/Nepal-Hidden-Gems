@@ -167,6 +167,66 @@ exports.getAllTravelers = async (req, res) => {
   }
 };
 
+// @desc    Get all pending guides for approval
+// @route   GET /api/admin/guides/pending
+// @access  Admin only
+exports.getPendingGuides = async (req, res) => {
+  try {
+    const pendingGuides = await User.find({ role: "guide", approvalStatus: "pending" })
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: pendingGuides.length,
+      data: pendingGuides
+    });
+  } catch (error) {
+    console.error("getPendingGuides error", error);
+    res.status(500).json({ success: false, error: "Failed to fetch pending guides" });
+  }
+};
+
+// @desc    Approve or Reject a guide
+// @route   PUT /api/admin/guides/:id/status
+// @access  Admin only
+exports.updateGuideStatus = async (req, res) => {
+  try {
+    const { status } = req.body; // 'approved' or 'rejected'
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ success: false, error: "Invalid status update" });
+    }
+
+    const guide = await User.findById(req.params.id);
+    if (!guide || guide.role !== "guide") {
+      return res.status(404).json({ success: false, error: "Guide not found" });
+    }
+
+    guide.approvalStatus = status;
+    await guide.save();
+
+    // Notify the guide
+    await createNotification({
+      recipientId: guide._id,
+      senderId: req.user.id,
+      type: 'account_status',
+      title: status === 'approved' ? 'Guide Account Approved!' : 'Guide Account Status Update',
+      message: status === 'approved' 
+        ? 'Congratulations! Your guide account has been approved. You can now access your dashboard.'
+        : 'Your guide application has been reviewed and unfortunately rejected at this time.',
+    });
+
+    res.json({
+      success: true,
+      message: `Guide ${status} successfully`,
+      data: guide
+    });
+  } catch (error) {
+    console.error("updateGuideStatus error", error);
+    res.status(500).json({ success: false, error: "Failed to update guide status" });
+  }
+};
+
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/stats
 // @access  Admin only
@@ -177,6 +237,7 @@ exports.getStats = async (req, res) => {
     const contributors = await User.countDocuments({ role: "contributor" });
     const guides = await User.countDocuments({ role: "guide" });
     const verifiedGuides = await User.countDocuments({ role: "guide", verified: true });
+    const pendingGuides = await User.countDocuments({ role: "guide", approvalStatus: "pending" });
 
     const totalDestinations = await Destination.countDocuments();
     const approvedDestinations = await Destination.countDocuments({ status: 'approved' });
@@ -200,7 +261,8 @@ exports.getStats = async (req, res) => {
           travelers,
           contributors,
           guides,
-          verifiedGuides
+          verifiedGuides,
+          pendingGuides
         },
         destinations: {
           total: totalDestinations,

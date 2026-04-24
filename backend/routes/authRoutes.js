@@ -74,8 +74,19 @@ router.post("/google-login", async (req, res) => {
       await user.save();
     }
 
-    if (!process.env.JWT_SECRET) {
-      return res.status(500).json({ success: false, error: "Token generation failed due to configuration" });
+    // Admin Approval Check for Guides
+    if (user.role === "guide" && user.approvalStatus !== "approved") {
+      if (user.approvalStatus === "pending") {
+        return res.status(403).json({ 
+          success: false, 
+          error: "Your guide account is currently under review by the administration. You will be notified once approved." 
+        });
+      } else if (user.approvalStatus === "rejected") {
+        return res.status(403).json({ 
+          success: false, 
+          error: "Your application for a guide account has been rejected. Please contact support for more details." 
+        });
+      }
     }
 
     const token = signToken({ userId: user._id, email: user.email, role: user.role }, "7d");

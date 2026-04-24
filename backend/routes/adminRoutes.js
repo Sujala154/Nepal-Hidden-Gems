@@ -10,6 +10,8 @@ const {
   getAllGuides,
   getAllContributors,
   getAllTravelers,
+  getPendingGuides,
+  updateGuideStatus,
   getStats,
   getContributorDestinations
 } = require("../controllers/adminController");
@@ -37,6 +39,8 @@ router.put("/destinations/:id/reject", rejectDestination);
 router.get("/users/guides", getAllGuides);
 router.get("/users/contributors", getAllContributors);
 router.get("/users/travelers", getAllTravelers);
+router.get("/guides/pending", getPendingGuides);
+router.put("/guides/:id/status", updateGuideStatus);
 router.get("/users/:id/destinations", getContributorDestinations);
 
 // Payments & Financials

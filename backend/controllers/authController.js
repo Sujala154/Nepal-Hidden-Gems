@@ -62,6 +62,7 @@ exports.register = catchAsync(async (req, res, next) => {
     email: normalizedEmail,
     password: hashedPassword,
     role: assignedRole,
+    approvalStatus: assignedRole === "guide" ? "pending" : "approved",
     verificationOTP: verificationCode,
     verificationOTPExpires: codeExpiry,
     phoneNumber,
@@ -74,9 +75,13 @@ exports.register = catchAsync(async (req, res, next) => {
   // Dispatch verification email
   await sendVerificationOTP(normalizedEmail, verificationCode, name);
 
+  const successMessage = assignedRole === "guide" 
+    ? "Check your email for the verification code. Once verified, your account will be reviewed by an administrator for approval."
+    : "Check your email for the verification code to activate your account.";
+
   res.status(201).json({
     success: true,
-    message: "Check your email for the verification code to activate your account.",
+    message: successMessage,
     user: { id: user._id, email: user.email, role: user.role, verified: user.verified },
   });
 });
@@ -104,6 +109,16 @@ exports.verifyOtp = catchAsync(async (req, res, next) => {
   user.verificationOTP = undefined;
   user.verificationOTPExpires = undefined;
   await user.save();
+
+  // Admin Approval Check for Guides - Prevent auto-login if pending
+  if (user.role === "guide" && user.approvalStatus !== "approved") {
+    return res.json({
+      success: true,
+      message: "Email verified successfully! Your account is now under administrative review. You will be able to log in once approved.",
+      requiresApproval: true,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, verified: user.verified }
+    });
+  }
 
   const sessionToken = signToken({ userId: user._id, email: user.email, role: user.role }, "7d");
 
@@ -156,6 +171,21 @@ exports.login = catchAsync(async (req, res, next) => {
 
   if (!user.verified) {
     return res.status(403).json({ success: false, error: "Account verification pending.", requiresVerification: true });
+  }
+
+  // Admin Approval Check for Guides
+  if (user.role === "guide" && user.approvalStatus !== "approved") {
+    if (user.approvalStatus === "pending") {
+      return res.status(403).json({ 
+        success: false, 
+        error: "Your guide account is currently under review by the administration. You will be notified once approved." 
+      });
+    } else if (user.approvalStatus === "rejected") {
+      return res.status(403).json({ 
+        success: false, 
+        error: "Your application for a guide account has been rejected. Please contact support for more details." 
+      });
+    }
   }
 
   const authToken = signToken({ userId: user._id, email: user.email, role: user.role }, "7d");

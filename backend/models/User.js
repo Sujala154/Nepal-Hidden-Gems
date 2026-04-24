@@ -49,6 +49,11 @@ const UserSchema = new mongoose.Schema({
     uploadedAt: { type: Date, default: Date.now },
   }],
   verified: { type: Boolean, default: false },
+  approvalStatus: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "approved", // Default to approved for travelers/contributors for now
+  },
   verificationOTP: { type: String }, 
   verificationOTPExpires: { type: Date },
   resetPasswordToken: { type: String },
