@@ -31,7 +31,7 @@ const PaymentSchema = new mongoose.Schema({
   },
   appFee: {
     type: Number,
-    default: 500
+    required: true
   },
   guideShare: {
     type: Number,

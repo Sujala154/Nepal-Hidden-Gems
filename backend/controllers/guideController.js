@@ -60,9 +60,9 @@ exports.getMyEarnings = async (req, res) => {
       // Guide revenue is their share
       totalRevenue += payment.guideShare;
       
-      if (payment.status === 'Pending') {
+      if (payment.payoutStatus === 'Pending') {
         pendingPayouts += payment.guideShare;
-      } else if (payment.status === 'Released') {
+      } else if (payment.payoutStatus === 'Released') {
         completedPayouts += payment.guideShare;
       }
     });

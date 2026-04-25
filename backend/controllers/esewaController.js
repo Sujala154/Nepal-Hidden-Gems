@@ -14,7 +14,9 @@ exports.initiateBookingPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: 'booking_id and amount are required' });
         }
 
-        const totalAmount = Number(amount) + 500; // Adding flat 500 App fee
+        // Calculation: Traveler pays the exact amount listed. 
+        // 10% will be deducted from this total as an app fee later during verification.
+        const totalAmount = Number(amount); 
 
         // Generate a unique transaction_uuid combining booking_id and timestamp
         const transaction_uuid = `${booking_id}-${Date.now()}`;
@@ -77,8 +79,8 @@ exports.verifyPayment = async (req, res) => {
                     guide: booking.guide,
                     transactionId: transaction_uuid,
                     totalPaid: Number(total_amount),
-                    appFee: 500,
-                    guideShare: booking.amount,
+                    appFee: Number(total_amount) * 0.1,
+                    guideShare: Number(total_amount) * 0.9,
                     paymentStatus: 'Paid',
                     payoutStatus: 'Pending',
                     esewaDetails: parsedData

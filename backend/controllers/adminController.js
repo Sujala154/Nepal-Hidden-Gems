@@ -340,11 +340,11 @@ exports.releasePayment = async (req, res) => {
       return res.status(404).json({ success: false, error: "Payment not found" });
     }
 
-    if (payment.status === 'Released') {
+    if (payment.payoutStatus === 'Released') {
       return res.status(400).json({ success: false, error: "Payment already released" });
     }
 
-    payment.status = 'Released';
+    payment.payoutStatus = 'Released';
     await payment.save();
 
     // Trigger notification to guide
