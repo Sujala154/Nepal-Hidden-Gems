@@ -25,8 +25,14 @@ exports.sendInvite = async (req, res) => {
             if (chat.status === 'active') {
                 return res.json({ success: true, message: "Chat already exists and is active", chat });
             }
-            // If pending, allow re-sending the notification to "nudge" the guide
-            console.log(`[INVITE_LOG] Chat is pending. Re-sending notification to guide: ${guideId}`);
+            if (chat.status === 'archived') {
+                chat.status = 'pending';
+                await chat.save();
+                console.log(`[INVITE_LOG] Chat was archived. Restoring to pending for guide: ${guideId}`);
+            } else {
+                // If pending, allow re-sending the notification to "nudge" the guide
+                console.log(`[INVITE_LOG] Chat is pending. Re-sending notification to guide: ${guideId}`);
+            }
         } else {
             // Create a pending chat
             chat = await Chat.create({
@@ -159,7 +165,8 @@ exports.getNotifications = async (req, res) => {
     try {
         const notifications = await Notification.find({
             recipient: req.user.id,
-            isRead: false
+            isRead: false,
+            type: 'invite'
         })
             .populate('sender', 'name profileImage')
             .sort({ createdAt: -1 });
