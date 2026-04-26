@@ -279,11 +279,14 @@ exports.getProfile = catchAsync(async (req, res, next) => {
 
 exports.updateProfile = catchAsync(async (req, res, next) => {
   const profileUpdates = {};
-  const { name, bio, profileImage, password } = req.body;
+  const { name, bio, profileImage, password, specialty, languages, phoneNumber } = req.body;
 
   if (name) profileUpdates.name = name;
   if (bio) profileUpdates.bio = bio;
   if (profileImage) profileUpdates.profileImage = profileImage;
+  if (specialty) profileUpdates.specialty = Array.isArray(specialty) ? specialty : specialty.split(',').map(s => s.trim());
+  if (languages) profileUpdates.languages = Array.isArray(languages) ? languages : languages.split(',').map(l => l.trim());
+  if (phoneNumber) profileUpdates.phoneNumber = phoneNumber;
 
   if (password) {
     if (!isStrongPassword(password)) {
