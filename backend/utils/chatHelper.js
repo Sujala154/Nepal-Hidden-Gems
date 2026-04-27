@@ -12,12 +12,16 @@ exports.initializeBookingChat = async (booking, options = {}) => {
 
     // CASE 1: PRIVATE BOOKING - Create/find 1-on-1 chat
     if (booking.type === 'private') {
+      const userId = booking.user?._id || booking.user;
+      const guideId = booking.guide?._id || booking.guide;
+
       const privateChat = await Chat.findOne({
-        participants: { $all: [booking.user, booking.guide] },
-        isGroup: false
+        participants: { $all: [userId, guideId], $size: 2 },
+        isGroup: { $ne: true }
       });
 
       if (privateChat) {
+        console.log(`[CHAT_INIT] Found existing private chat: ${privateChat._id}`);
         // Chat already exists
         if (privateChat.status === 'pending') {
           // Activate it
@@ -27,9 +31,10 @@ exports.initializeBookingChat = async (booking, options = {}) => {
         return privateChat;
       }
 
+      console.log(`[CHAT_INIT] Creating new private chat for booking: ${booking._id}`);
       // Create new 1-on-1 private chat
       const newPrivateChat = await Chat.create({
-        participants: [booking.user, booking.guide],
+        participants: [userId, guideId],
         status: 'active',
         isGroup: false,
         metadata: {

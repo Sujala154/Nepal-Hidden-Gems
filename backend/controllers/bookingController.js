@@ -89,15 +89,7 @@ exports.getMyBookings = async (req, res) => {
         }
       }
 
-      // 2. Self-heal Group Chat if booking is accepted
-      if (b.status === 'Accepted') {
-        try {
-          const { initializeBookingChat } = require('../utils/chatHelper');
-          await initializeBookingChat(b);
-        } catch (chatErr) {
-          console.error("Self-heal chat error:", chatErr);
-        }
-      }
+      // Self-heal removed to prevent respawning deleted chats
 
       return b;
     }));
