@@ -13,11 +13,11 @@ const auth = require('../middleware/authMiddleware');
 // Get reviews for a specific destination - Public
 router.get('/:destinationId', getReviewsByDestination);
 
-// Get reviews for a specific guide profile - Public
-router.get('/guide/:guideId', getReviewsByGuide);
-
 // Get all reviews for current guide's dashboard - Private
 router.get('/guide/me', auth, getGuideDashboardReviews);
+
+// Get reviews for a specific guide profile - Public
+router.get('/guide/:guideId', getReviewsByGuide);
 
 // Add a review - Private (Requires Auth)
 router.post('/', auth, createReview);

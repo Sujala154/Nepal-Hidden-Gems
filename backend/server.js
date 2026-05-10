@@ -138,9 +138,29 @@ app.get('/api/auth/google-config', (req, res) => {
 // Post-route error handling
 app.use(globalErrorHandler);
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+const BASE_PORT = Number(process.env.PORT) || 5000;
+const MAX_PORT_RETRIES = 10;
+let currentPort = BASE_PORT;
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    if (currentPort < BASE_PORT + MAX_PORT_RETRIES) {
+      const nextPort = currentPort + 1;
+      console.warn(`Port ${currentPort} is already in use. Trying port ${nextPort}...`);
+      currentPort = nextPort;
+      server.listen(currentPort);
+      return;
+    }
+
+    console.error(`Unable to bind to a port after ${MAX_PORT_RETRIES + 1} attempts. Please free a port or set process.env.PORT.`);
+    process.exit(1);
+  }
+
+  throw error;
+});
+
+server.listen(currentPort, () => {
+  console.log(`Server started on port ${currentPort}`);
 });
 
 
