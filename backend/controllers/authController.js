@@ -319,7 +319,7 @@ exports.changePassword = catchAsync(async (req, res, next) => {
 
   const isPasswordCorrect = await bcrypt.compare(currentPassword, currentUser.password);
   if (!isPasswordCorrect) {
-    return res.status(401).json({ success: false, error: "Incorrect current password." });
+    return res.status(400).json({ success: false, error: "Incorrect current password." });
   }
 
   currentUser.password = await bcrypt.hash(newPassword, 12);

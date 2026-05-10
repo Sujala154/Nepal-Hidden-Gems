@@ -250,9 +250,12 @@ Discover the hidden treasures of Nepal
 };
 
 const sendResetEmail = async (email, name, resetUrl) => {
+  console.log('\n🔐 PASSWORD RESET REQUEST');
+  console.log(`To: ${email}`);
+  console.log(`🔗 Development Reset URL: ${resetUrl}\n`);
+
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.log("❌ Email credentials missing in .env file");
-    console.log("🔗 Reset URL:", resetUrl);
     return { success: false, message: "Email credentials missing", resetUrl };
   }
 

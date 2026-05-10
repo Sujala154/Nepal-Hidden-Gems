@@ -13,7 +13,9 @@ const {
   getPendingGuides,
   updateGuideStatus,
   getStats,
-  getContributorDestinations
+  getContributorDestinations,
+  toggleUserBan,
+  deleteUser
 } = require("../controllers/adminController");
 
 const {
@@ -42,6 +44,8 @@ router.get("/users/travelers", getAllTravelers);
 router.get("/guides/pending", getPendingGuides);
 router.put("/guides/:id/status", updateGuideStatus);
 router.get("/users/:id/destinations", getContributorDestinations);
+router.put("/users/:id/ban", toggleUserBan);
+router.delete("/users/:id", deleteUser);
 
 // Payments & Financials
 router.get("/payments", getAllPayments);

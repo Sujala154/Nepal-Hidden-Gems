@@ -366,3 +366,57 @@ exports.releasePayment = async (req, res) => {
     res.status(500).json({ success: false, error: "Failed to release payout" });
   }
 };
+
+// @desc    Toggle Ban status for a user
+// @route   PUT /api/admin/users/:id/ban
+// @access  Admin only
+exports.toggleUserBan = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(403).json({ success: false, error: "Cannot modify an administrator account" });
+    }
+
+    user.isBanned = !user.isBanned;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `User has been successfully ${user.isBanned ? 'banned' : 'unbanned'}`,
+      data: { isBanned: user.isBanned }
+    });
+  } catch (error) {
+    console.error("toggleUserBan error", error);
+    res.status(500).json({ success: false, error: "Failed to update user status" });
+  }
+};
+
+// @desc    Delete a user permanently
+// @route   DELETE /api/admin/users/:id
+// @access  Admin only
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(403).json({ success: false, error: "Cannot delete an administrator account" });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: "User permanently deleted"
+    });
+  } catch (error) {
+    console.error("deleteUser error", error);
+    res.status(500).json({ success: false, error: "Failed to delete user" });
+  }
+};
