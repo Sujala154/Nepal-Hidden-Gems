@@ -44,15 +44,17 @@ exports.approveDestination = async (req, res) => {
     destination.status = 'approved';
     await destination.save();
 
-    // Trigger notification to contributor
-    await createNotification({
-      recipientId: destination.createdBy,
-      senderId: req.user.id,
-      type: 'destination_status',
-      title: 'Destination Approved!',
-      message: `Great news! Your destination submission "${destination.name}" has been approved and is now live.`,
-      relatedId: destination._id
-    });
+    // Trigger notification to contributor if owner exists
+    if (destination.createdBy) {
+      await createNotification({
+        recipientId: destination.createdBy,
+        senderId: req.user.id,
+        type: 'destination_status',
+        title: 'Destination Approved!',
+        message: `Great news! Your destination submission "${destination.name}" has been approved and is now live.`,
+        relatedId: destination._id
+      });
+    }
 
     res.json({
       success: true,

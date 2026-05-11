@@ -75,23 +75,63 @@ exports.createDestination = async (req, res) => {
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    // Handle multiple image uploads
-    let imagePaths = [];
+    // Strict validation for all required fields
+    const requiredFields = [
+      'name', 'location', 'tagline', 'description', 
+      'category', 'difficulty', 'bestSeason', 
+      'specialty', 'hospitality', 'accommodation', 'tips'
+    ];
+
+    const missingFields = requiredFields.filter(field => !req.body[field] || req.body[field].trim() === '');
+    
+    // 1. Combine all possible image sources (Files or JSON URLs)
+    let images = [];
+    
+    // [X-RAY DEBUG] - Let's see exactly what the server receives
+    console.log('\n--- [X-RAY DEBUG: START] ---');
+    console.log('Method:', req.method);
+    console.log('Headers Content-Type:', req.headers['content-type']);
+    console.log('Body Keys:', Object.keys(req.body));
+    console.log('Body Images Value:', req.body.images);
+    console.log('Files Count:', req.files ? req.files.length : 0);
+    
+    // Check Multer files
     if (req.files && req.files.length > 0) {
-      imagePaths = req.files.map(file => file.path);
-    } else if (req.body.image) {
-      // Fallback for URL-based images (e.g. from seed)
-      imagePaths = [req.body.image];
+      images = req.files.map(file => file.path);
+    } 
+    
+    // Check JSON body (images array or singular image)
+    const bodyImages = req.body.images || req.body.image;
+    if (images.length === 0 && bodyImages) {
+      images = Array.isArray(bodyImages) ? bodyImages : [bodyImages];
     }
 
+    // Clean up empty strings or nulls
+    images = images.filter(img => img && typeof img === 'string' && img.trim() !== '');
+    console.log('Final Images Array:', images);
+    console.log('--- [X-RAY DEBUG: END] ---\n');
+
+    // 2. Validation
+    if (missingFields.length > 0 || images.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: missingFields.length > 0 
+          ? `Please provide all required fields: ${missingFields.join(', ')}`
+          : "Please upload at least one image for the destination"
+      });
+    }
+
+    // 3. Prepare data for saving
     const destinationData = {
       ...req.body,
-      slug, // Force generated slug
-      image: imagePaths.length > 0 ? imagePaths[0] : '', // First image as main
-      multiple_images: imagePaths, // All images for gallery
-      long_description: req.body.long_description || req.body.description, // Fallback to description
-      createdBy: req.user.id, // Set creator
-      approved: false, // Default to pending
+      slug,
+      image: images[0], // Primary image
+      images: images,   // Full array for original schema
+      multiple_images: images, // For gallery compatibility
+      long_description: req.body.long_description || req.body.description,
+      contributor: req.user.id,
+      createdBy: req.user.id,
+      approved: false, // Must be approved by admin
       status: 'pending'
     };
 
