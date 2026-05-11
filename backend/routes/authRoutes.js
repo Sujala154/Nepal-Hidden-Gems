@@ -33,7 +33,7 @@ router.put("/change-password", auth, changePassword);
 
 // Google Sign-In endpoint
 router.post("/google-login", async (req, res) => {
-  const { credential } = req.body;
+  const { credential, role } = req.body;
 
   if (!credential) {
     return res.status(400).json({ success: false, error: "Missing Google credential" });
@@ -59,12 +59,16 @@ router.post("/google-login", async (req, res) => {
     let user = await User.findOne({ $or: [{ email }, { googleId }] });
     
     if (!user) {
+      // Validate requested role for new Google users
+      const allowedRoles = ["traveler", "contributor"];
+      const finalRole = allowedRoles.includes(role) ? role : "traveler";
+
       user = new User({
         name,
         email,
         googleId,
         verified: true,
-        role: "traveler",
+        role: finalRole,
       });
       await user.save();
     } else if (!user.googleId) {
@@ -111,8 +115,5 @@ router.post("/google-login", async (req, res) => {
     });
   }
 });
-
-module.exports = router;
-
 
 module.exports = router;
