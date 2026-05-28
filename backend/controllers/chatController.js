@@ -233,9 +233,11 @@ exports.sendMessage = async (req, res) => {
 
         const populatedMessage = await Message.findById(message._id).populate('sender', 'name profileImage role');
         
-        // Emit via Socket.io
+        // Emit via Socket.io if available
         const io = req.app.get('io');
-        io.to(chatId).emit('receive_message', populatedMessage);
+        if (io) {
+            io.to(chatId).emit('receive_message', populatedMessage);
+        }
 
         res.status(201).json({
             success: true,

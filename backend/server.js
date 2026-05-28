@@ -23,38 +23,46 @@ if (missingVars.length > 0) {
 const app = express();
 const server = require('http').createServer(app);
 
-// Build Socket.io allowed origins from environment
-const socketCorsOrigins = [
+const frontendUrls = [
   process.env.CLIENT_URL,
   process.env.FRONTEND_URL,
   'http://localhost:5173',
   'http://127.0.0.1:5173'
 ].filter(Boolean);
 
-const io = require('socket.io')(server, {
-  cors: {
-    origin: socketCorsOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-  }
-});
+const enableSocketIo = process.env.VERCEL !== '1' && process.env.DISABLE_SOCKET_IO !== 'true';
+let io = null;
 
-// Socket connection management
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
-
-  socket.on('join_chat', (chatId) => {
-    socket.join(chatId);
+if (enableSocketIo) {
+  io = require('socket.io')(server, {
+    cors: {
+      origin: frontendUrls,
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      credentials: true
+    },
+    transports: ['websocket', 'polling']
   });
 
-  socket.on('leave_chat', (chatId) => {
-    socket.leave(chatId);
+  io.on('connection', (socket) => {
+    console.log('Client connected:', socket.id);
+
+    socket.on('join_chat', (chatId) => {
+      socket.join(chatId);
+    });
+
+    socket.on('leave_chat', (chatId) => {
+      socket.leave(chatId);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Client disconnected');
+    });
   });
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
-  });
-});
+  console.log('Socket.io enabled. Allowed origins:', frontendUrls);
+} else {
+  console.warn('Socket.io disabled for Vercel serverless environment.');
+}
 
 // Accessibility for socket instance
 app.set('io', io);
