@@ -3,11 +3,14 @@ const axios = require('axios');
 const Booking = require('../models/Booking');
 const Payment = require('../models/Payment');
 
-// Secret Key for testing provided by the user
-const ESEWA_SECRET_KEY = '8gBm/:&EnhH.1/q';
+const ESEWA_SECRET_KEY = process.env.ESEWA_SECRET_KEY;
 
 exports.initiateBookingPayment = async (req, res) => {
     try {
+        if (!ESEWA_SECRET_KEY) {
+            console.error('Missing ESEWA_SECRET_KEY environment variable');
+            return res.status(500).json({ success: false, message: 'Server configuration error' });
+        }
         const { booking_id, amount } = req.body;
 
         if (!booking_id || !amount) {

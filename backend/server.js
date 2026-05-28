@@ -12,7 +12,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const esewaRoutes = require('./routes/esewaRoutes');
 
 // Basic environment check
-const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID'];
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'ESEWA_SECRET_KEY', 'FRONTEND_URL'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {

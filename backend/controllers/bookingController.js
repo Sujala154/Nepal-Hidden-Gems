@@ -8,6 +8,20 @@ exports.createBooking = async (req, res) => {
   try {
     const { guideId, guideName, destinationName, date, amount, type, groupId } = req.body;
 
+    // Validate that the booking date is in the future (not today or earlier)
+    const bookingDate = new Date(date);
+    bookingDate.setUTCHours(0, 0, 0, 0);
+    
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    
+    if (bookingDate <= today) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Booking date must be in the future. You cannot book a guide for today or past dates." 
+      });
+    }
+
     const bookingData = {
       user: req.user.id,
       guide: guideId,

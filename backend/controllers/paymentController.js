@@ -62,11 +62,24 @@ exports.confirmRefund = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Payment record not found' });
         }
 
+        if (!esewaRefundId || !esewaRefundId.trim()) {
+            return res.status(400).json({ success: false, message: 'eSewa refund ID is required' });
+        }
+
+        if (payment.paymentStatus !== 'Refund Pending') {
+            return res.status(400).json({ success: false, message: 'Refund can only be confirmed for Refund Pending payments' });
+        }
+
+        const trimmedRefundId = esewaRefundId.trim();
+        if (trimmedRefundId !== payment.transactionId) {
+            return res.status(400).json({ success: false, message: 'Refund ID must exactly match the original payment transaction ID.' });
+        }
+
         payment.paymentStatus = 'Refunded';
         payment.refundDetails = {
             ...payment.refundDetails,
             refundedAt: new Date(),
-            esewaRefundId: esewaRefundId || 'MANUAL-REFUND'
+            esewaRefundId: trimmedRefundId
         };
 
         await payment.save();
