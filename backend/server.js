@@ -12,7 +12,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const esewaRoutes = require('./routes/esewaRoutes');
 
 // Basic environment check
-const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'ESEWA_SECRET_KEY', 'FRONTEND_URL'];
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
@@ -23,46 +23,31 @@ if (missingVars.length > 0) {
 const app = express();
 const server = require('http').createServer(app);
 
-const frontendUrls = [
-  process.env.CLIENT_URL,
-  process.env.FRONTEND_URL,
-  'http://localhost:5173',
-  'http://127.0.0.1:5173'
-].filter(Boolean);
+// Local development - only allow localhost
+const io = require('socket.io')(server, {
+  cors: {
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+  },
+  transports: ['websocket', 'polling']
+});
 
-const enableSocketIo = process.env.VERCEL !== '1' && process.env.DISABLE_SOCKET_IO !== 'true';
-let io = null;
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
 
-if (enableSocketIo) {
-  io = require('socket.io')(server, {
-    cors: {
-      origin: frontendUrls,
-      methods: ['GET', 'POST', 'PUT', 'DELETE'],
-      credentials: true
-    },
-    transports: ['websocket', 'polling']
+  socket.on('join_chat', (chatId) => {
+    socket.join(chatId);
   });
 
-  io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
-
-    socket.on('join_chat', (chatId) => {
-      socket.join(chatId);
-    });
-
-    socket.on('leave_chat', (chatId) => {
-      socket.leave(chatId);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Client disconnected');
-    });
+  socket.on('leave_chat', (chatId) => {
+    socket.leave(chatId);
   });
 
-  console.log('Socket.io enabled. Allowed origins:', frontendUrls);
-} else {
-  console.warn('Socket.io disabled for Vercel serverless environment.');
-}
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
 
 // Accessibility for socket instance
 app.set('io', io);
@@ -90,16 +75,9 @@ mongoose.connect(process.env.MONGO_URI)
     process.exit(1);
   });
 
-// CORS configuration for local development and Google Auth
-const frontendUrls = [
-  process.env.CLIENT_URL,
-  process.env.FRONTEND_URL,
-  'http://localhost:5173',
-  'http://127.0.0.1:5173'
-].filter(Boolean);
-
+// CORS configuration - allow localhost only for local development
 app.use(cors({
-  origin: frontendUrls,
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
