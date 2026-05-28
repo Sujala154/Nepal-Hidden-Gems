@@ -1,0 +1,37 @@
+{
+  "name": "nepal-hidden-gems",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --no-deprecation node_modules/vite/bin/vite.js",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@react-oauth/google": "^0.12.2",
+    "axios": "^1.13.2",
+    "date-fns": "^2.30.0",
+    "html2pdf.js": "^0.14.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.555.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.71.0",
+    "react-hot-toast": "^2.4.1",
+    "react-icons": "^4.11.0",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^6.30.2",
+    "recharts": "^3.6.0",
+    "socket.io-client": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.26",
+    "@types/react-dom": "^18.0.9",
+    "@vitejs/plugin-react": "^3.0.0",
+    "autoprefixer": "^10.4.13",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.2.4",
+    "vite": "^4.0.0"
+  }
+}

@@ -1,0 +1,103 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-primary: #1e293b; /* Slate 800 */
+    --brand-accent: #0f172a;  /* Midnight */
+    --brand-highlight: #6366f1; /* Indigo 500 */
+    --brand-success: #10b981;
+    --brand-danger: #ef4444;
+    --brand-bg: #fcfcfd;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-[#fcfcfd] text-slate-900 font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-slate-900 tracking-tight;
+  }
+}
+
+@layer components {
+  .btn-premium {
+    @apply px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-2 active:scale-95;
+  }
+  
+  .btn-primary {
+    @apply bg-slate-900 text-white shadow-lg shadow-slate-900/10 hover:bg-black hover:shadow-xl hover:shadow-slate-900/20;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+
+  .input-premium {
+    @apply w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 transition-all font-medium placeholder:text-slate-300;
+  }
+}
+
+/* Custom Scrollbar utility */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #e2e8f0;
+}
+
+/* Global Scrollbar Hiding */
+@layer base {
+  /* Hide scrollbar for all elements but keep functionality */
+  * {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+}
+
+@layer components {
+  /* ... existing components ... */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
