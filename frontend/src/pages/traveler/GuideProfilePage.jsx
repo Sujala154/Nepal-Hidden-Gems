@@ -16,6 +16,7 @@ import {
   FaUsers
 } from 'react-icons/fa';
 import api from '../../services/api';
+import { buildBackendUrl } from '../../utils/backendUrls';
 import toast from 'react-hot-toast';
 
 const GuideProfilePage = () => {
@@ -519,7 +520,7 @@ const GuideProfilePage = () => {
                              <div className="flex gap-4">
                                 <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100">
                                    {tour.photos && tour.photos.length > 0 ? (
-                                      <img src={tour.photos[0].startsWith('http') ? tour.photos[0] : `http://localhost:5000/${tour.photos[0]}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={tour.title} />
+                                      <img src={buildBackendUrl(tour.photos[0])} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={tour.title} />
                                    ) : <FaMountain className="text-slate-200 text-3xl mx-auto mt-6" />}
                                 </div>
                                 <div className="flex-1 min-w-0">

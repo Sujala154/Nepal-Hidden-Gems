@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaMapMarkerAlt, FaStar, FaMountain, FaUtensils, FaBed, FaTag, FaUsers, FaImage } from 'react-icons/fa';
+import { buildBackendUrl } from '../../utils/backendUrls';
 
 const UnifiedDestinationContainer = ({ destination }) => {
   if (!destination) return null;
@@ -22,7 +23,7 @@ const UnifiedDestinationContainer = ({ destination }) => {
             {/* Main large image */}
             <div className="h-64 md:h-auto min-h-[260px] rounded-2xl overflow-hidden shadow-sm border border-slate-100">
               <img 
-                src={galleryImages[0]?.startsWith('http') ? galleryImages[0] : `http://localhost:5000${galleryImages[0]}`} 
+                src={buildBackendUrl(galleryImages[0])} 
                 alt={destination.name} 
                 className="w-full h-full object-cover"
               />
@@ -32,7 +33,7 @@ const UnifiedDestinationContainer = ({ destination }) => {
               {galleryImages.slice(1, 5).map((img, idx) => (
                 <div key={idx} className="h-32 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
                   <img 
-                    src={img?.startsWith('http') ? img : `http://localhost:5000${img}`} 
+                    src={buildBackendUrl(img)} 
                     alt={`${destination.name} ${idx + 2}`} 
                     className="w-full h-full object-cover"
                   />
@@ -51,7 +52,7 @@ const UnifiedDestinationContainer = ({ destination }) => {
           /* Single image layout */
           <div className="h-[280px] w-full rounded-3xl overflow-hidden shadow-xl border border-slate-100">
             <img 
-               src={destination.image?.startsWith('http') ? destination.image : `http://localhost:5000${destination.image}`} 
+               src={buildBackendUrl(destination.image)} 
                alt={destination.name} 
                className="w-full h-full object-cover"
             />

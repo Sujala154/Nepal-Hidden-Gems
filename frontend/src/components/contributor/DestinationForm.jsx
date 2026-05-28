@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaMapMarkerAlt, FaTag, FaImage, FaSpinner, FaWallet } from 'react-icons/fa';
+import { buildBackendUrl } from '../../utils/backendUrls';
 
 const DestinationForm = ({ formData, setFormData, onSubmit, loading, buttonText }) => {
   const [previewUrls, setPreviewUrls] = useState([]);
@@ -10,7 +11,7 @@ const DestinationForm = ({ formData, setFormData, onSubmit, loading, buttonText 
     if (formData.images && formData.images.length > 0) {
       const urls = formData.images.map(img => {
         if (img instanceof File) return URL.createObjectURL(img);
-        return img.startsWith('http') ? img : `http://localhost:5000${img}`;
+        return buildBackendUrl(img);
       });
       setPreviewUrls(urls);
       return () => urls.forEach(url => {
@@ -20,7 +21,7 @@ const DestinationForm = ({ formData, setFormData, onSubmit, loading, buttonText 
       // Fallback for single image (compatibility)
       const url = formData.image instanceof File 
         ? URL.createObjectURL(formData.image) 
-        : (formData.image.startsWith('http') ? formData.image : `http://localhost:5000${formData.image}`);
+        : buildBackendUrl(formData.image);
       setPreviewUrls([url]);
       return () => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); };
     } else {

@@ -87,7 +87,7 @@ const ContributorSubmissions = () => {
                                 <div className="flex gap-4 relative z-10">
                                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
                                         <img 
-                                            src={dest.image?.startsWith('http') ? dest.image : `http://localhost:5000${dest.image}`} 
+                                            src={buildBackendUrl(dest.image)} 
                                             className="w-full h-full object-cover"
                                             alt=""
                                         />

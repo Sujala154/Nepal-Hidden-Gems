@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaStar, FaMapMarkerAlt } from 'react-icons/fa';
+import { buildBackendUrl } from '../../utils/backendUrls';
 
 /**
  * GemCard - A reusable card component for displaying hidden gems across 
@@ -8,7 +9,7 @@ import { FaStar, FaMapMarkerAlt } from 'react-icons/fa';
 const GemCard = ({ gem }) => {
     const imageUrl = gem.image?.startsWith('http')
         ? gem.image
-        : (gem.image ? `http://localhost:5000${gem.image}` : 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=900');
+        : (gem.image ? buildBackendUrl(gem.image) : 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=900');
 
     return (
         <div className="relative overflow-hidden rounded-[2rem] aspect-[3/4] bg-slate-900 group shadow-2xl shadow-slate-200 cursor-pointer overflow-hidden">

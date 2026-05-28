@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaMapMarkerAlt, FaWallet, FaLeaf, FaCompass, FaCalendarAlt } from 'react-icons/fa';
+import { buildBackendUrl } from '../../utils/backendUrls';
 
 const DestinationPreview = ({ formData }) => {
     const {
@@ -17,7 +18,7 @@ const DestinationPreview = ({ formData }) => {
 
     const imageUrl = image instanceof File
         ? URL.createObjectURL(image)
-        : (image?.startsWith('http') ? image : (image ? `http://localhost:5000${image}` : null));
+        : (image?.startsWith('http') ? image : buildBackendUrl(image));
 
     return (
         <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden flex flex-col h-full transform transition-all hover:shadow-amber-100/50">

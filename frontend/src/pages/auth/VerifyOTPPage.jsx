@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaEnvelope, FaCheckCircle, FaTimesCircle, FaArrowLeft } from 'react-icons/fa';
+import { buildApiUrl } from '../../utils/backendUrls';
 
 const VerifyOTPPage = () => {
   const navigate = useNavigate();
@@ -72,7 +73,7 @@ const VerifyOTPPage = () => {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
+      const response = await fetch(buildApiUrl('/auth/verify-otp'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ const VerifyOTPPage = () => {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/resend-otp', {
+      const response = await fetch(buildApiUrl('/auth/resend-otp'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

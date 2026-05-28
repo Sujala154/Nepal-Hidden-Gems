@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import api from '../../services/api';
+import { buildBackendUrl } from '../../utils/backendUrls';
 import { FaCheck, FaTimes, FaEye, FaSpinner, FaMapMarkerAlt, FaUser, FaInfoCircle, FaExclamationCircle, FaBan } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import UnifiedDestinationContainer from '../../components/common/UnifiedDestinationContainer';
@@ -123,7 +124,7 @@ const AdminDestinations = () => {
                 <div className="flex gap-3">
                   <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
                     <img
-                      src={dest.image?.startsWith('http') ? dest.image : `http://localhost:5000${dest.image}`}
+                      src={buildBackendUrl(dest.image)}
                       className="w-full h-full object-cover"
                       alt=""
                     />

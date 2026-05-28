@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useOutletContext, Link, useNavigate } from 'react-router-dom';
+import { buildBackendUrl } from '../../utils/backendUrls';
 import { FaTrash, FaEdit, FaEye, FaSpinner, FaExclamationCircle, FaMapMarkerAlt, FaTimes, FaArrowRight, FaStar, FaExternalLinkAlt, FaPlus } from 'react-icons/fa';
 import api from '../../services/api';
 import DestinationForm from './DestinationForm';
@@ -163,7 +164,7 @@ const MySubmissions = () => {
               {/* Image & Header Overlay */}
               <div className="relative h-44 overflow-hidden shrink-0">
                 <img
-                  src={dest.image?.startsWith('http') ? dest.image : (dest.image ? `http://localhost:5000${dest.image}` : 'https://placehold.co/400x300?text=No+Image')}
+                  src={dest.image?.startsWith('http') ? dest.image : (dest.image ? buildBackendUrl(dest.image) : 'https://placehold.co/400x300?text=No+Image')}
                   alt={dest.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => { e.target.src = 'https://placehold.co/400x300?text=No+Image'; }}

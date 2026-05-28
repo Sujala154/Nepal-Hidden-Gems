@@ -7,6 +7,7 @@
  */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import { SOCKET_URL } from '../utils/backendUrls';
 
 const SocketContext = createContext();
 
@@ -23,8 +24,8 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // ── Initialization ──
-    // Pointing to the local dev server — in production, this should be an environment variable.
-    const newSocket = io('http://127.0.0.1:5000', {
+    // Use the configured Socket URL or inherit from the backend API host.
+    const newSocket = io(SOCKET_URL, {
       withCredentials: true,
       autoConnect: true,
     });

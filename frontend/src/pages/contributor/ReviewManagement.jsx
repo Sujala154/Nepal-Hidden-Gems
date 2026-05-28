@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaStar, FaReply, FaMapMarkerAlt, FaQuoteLeft, FaTimes, FaCheck, FaSpinner } from 'react-icons/fa';
+import { buildBackendUrl } from '../../utils/backendUrls';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -84,7 +85,7 @@ const ReviewManagement = () => {
                 <div className="w-full md:w-40 shrink-0">
                    <div className="relative h-28 rounded-lg overflow-hidden border border-slate-100 shadow-sm">
                       <img 
-                        src={rev.destination?.image?.startsWith('http') ? rev.destination.image : `http://localhost:5000${rev.destination?.image}`} 
+                        src={buildBackendUrl(rev.destination?.image)} 
                         alt={rev.destination?.name}
                         className="w-full h-full object-cover"
                       />

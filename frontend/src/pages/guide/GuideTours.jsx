@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaCalendarDay, FaUser, FaMapMarkerAlt, FaToggleOn, FaToggleOff, FaMapMarkedAlt, FaTrash, FaPlus, FaCheckCircle, FaClock, FaTag } from 'react-icons/fa';
 import api from '../../services/api';
+import { buildBackendUrl } from '../../utils/backendUrls';
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 
@@ -125,7 +126,7 @@ const GuideTours = () => {
                            {/* Tour Image */}
                            <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
                               {tour.photos && tour.photos.length > 0 ? (
-                                  <img src={tour.photos[0].startsWith('http') ? tour.photos[0] : `http://localhost:5000/${tour.photos[0]}`} alt={tour.title} className="w-full h-full object-cover" />
+                                  <img src={buildBackendUrl(tour.photos[0])} alt={tour.title} className="w-full h-full object-cover" />
                               ) : (
                                   <div className="w-full h-full flex items-center justify-center text-slate-300"><FaMapMarkedAlt className="text-2xl" /></div>
                               )}

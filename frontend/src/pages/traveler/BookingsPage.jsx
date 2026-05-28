@@ -28,6 +28,7 @@ import {
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { buildBackendUrl } from '../../utils/backendUrls';
 import PartnerSuggestionCard from '../../components/traveler/PartnerSuggestionCard';
 import SearchTimeoutModal from '../../components/traveler/SearchTimeoutModal';
 import PendingJoinRequestsCard from '../../components/traveler/PendingJoinRequestsCard';
@@ -133,7 +134,7 @@ const BookingsPage = () => {
           product_code: product_code,
           product_service_charge: '0',
           product_delivery_charge: '0',
-          success_url: `http://localhost:5000/api/esewa/verify-payment`,
+          success_url: buildBackendUrl('/api/esewa/verify-payment'),
           failure_url: `${window.location.origin}/payment/failure`,
           signed_field_names: 'total_amount,transaction_uuid,product_code',
           signature: signature,

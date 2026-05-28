@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { FaMapMarkerAlt, FaArrowRight, FaSearch } from 'react-icons/fa';
+import { buildApiUrl, buildBackendUrl } from '../../utils/backendUrls';
 
 const TravelerDashboard = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const TravelerDashboard = () => {
     const fetchDestinations = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/destinations');
+        const response = await fetch(buildApiUrl('/destinations'));
         const data = await response.json();
         const destinations = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
         setAllDestinations(destinations);
@@ -106,7 +107,7 @@ const TravelerDashboard = () => {
               {/* Image */}
               <div className="relative h-56 overflow-hidden">
                 <img
-                  src={destination.image?.startsWith('http') ? destination.image : `http://localhost:5000${destination.image}`}
+                  src={buildBackendUrl(destination.image)}
                   alt={destination.name}
                   onError={(e) => { e.target.src = 'https://placehold.co/800x600?text=No+Image'; }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

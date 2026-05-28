@@ -9,9 +9,7 @@
  * and errors in a consistent format.
  */
 import axios from 'axios';
-
-// Replace this with your actual live backend Vercel link!
-const API_URL = 'https://nepal-hidden-gems-backend.vercel.app/api';
+import { API_URL } from '../utils/backendUrls';
 
 const api = axios.create({
   baseURL: API_URL,

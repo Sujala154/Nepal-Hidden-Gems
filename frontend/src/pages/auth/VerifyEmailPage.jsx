@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaCheckCircle, FaTimesCircle, FaEnvelope } from 'react-icons/fa';
+import { buildApiUrl } from '../../utils/backendUrls';
 
 const VerifyEmailPage = () => {
   const [status, setStatus] = useState('verifying');
@@ -20,7 +21,7 @@ const VerifyEmailPage = () => {
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/api/auth/verify-email?token=${token}`);
+        const response = await fetch(buildApiUrl(`/auth/verify-email?token=${token}`));
         const data = await response.json();
 
         if (response.ok) {
