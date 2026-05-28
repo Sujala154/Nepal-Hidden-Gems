@@ -22,9 +22,18 @@ if (missingVars.length > 0) {
 
 const app = express();
 const server = require('http').createServer(app);
+
+// Build Socket.io allowed origins from environment
+const socketCorsOrigins = [
+  process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+].filter(Boolean);
+
 const io = require('socket.io')(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: socketCorsOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   }
