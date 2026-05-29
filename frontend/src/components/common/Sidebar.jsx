@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { FaCompass, FaHeart, FaComments, FaUser, FaTicketAlt, FaMountain, FaUserTie } from 'react-icons/fa';
 
-const Sidebar = () => {
+const Sidebar = ({ open, onClose }) => {
   const user = JSON.parse(sessionStorage.getItem('user') || '{}');
   const navItems = [
     { path: '/destinations', label: 'Destinations', icon: FaCompass },
@@ -13,7 +13,51 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-64 bg-white/80 backdrop-blur-xl border-r border-slate-200 fixed h-full hidden md:flex flex-col z-20 shadow-2xl shadow-slate-200/50">
+    <>
+      {/* Mobile backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/40 z-[40] md:hidden transition-opacity duration-200 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={onClose}
+        aria-hidden={!open}
+      />
+
+      {/* Mobile drawer */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-72 max-w-full bg-white z-[60] md:hidden transform transition-transform duration-300 ease-in-out shadow-2xl border-r border-slate-200 overflow-y-auto ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        aria-hidden={!open}
+      >
+        <div className="p-4 border-b border-slate-100 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center shadow-md">
+            <FaMountain className="text-white" />
+          </div>
+          <h3 className="text-sm font-black">Traveller Dashboard</h3>
+        </div>
+
+        <nav className="p-4 space-y-2">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-3 rounded-md font-semibold text-sm transition-colors ${
+                  isActive ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white' : 'text-slate-600 hover:bg-slate-50'
+                }`
+              }
+            >
+              <item.icon className="w-4 h-4" />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="p-4 mt-auto">
+          <p className="text-[10px] text-slate-400 text-center">© 2026 Nepal Hidden Gems</p>
+        </div>
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="w-64 bg-white/80 backdrop-blur-xl border-r border-slate-200 fixed h-full hidden md:flex flex-col z-20 shadow-2xl shadow-slate-200/50">
       <div className="p-8 pb-10">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
@@ -53,6 +97,7 @@ const Sidebar = () => {
         </div>
       </div>
     </aside>
+    </>
   );
 };
 

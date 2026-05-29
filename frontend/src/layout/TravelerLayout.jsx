@@ -42,6 +42,7 @@ const DEFAULT_CONFIG = {
 
 const TravelerLayout = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
   // Read user once from session — only needed for the avatar initials.
@@ -73,10 +74,19 @@ const TravelerLayout = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      <Sidebar />
+      <Sidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <main className="flex-1 md:ml-64 relative bg-slate-50 flex flex-col">
         {/* Context-aware sticky header — shows a search bar on eligible routes */}
         <header className="bg-white sticky top-0 z-50 px-4 py-3 border-b border-slate-100 flex items-center h-16 shadow-sm">
+          <button
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+            className="mr-4 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-slate-100 shadow-sm text-slate-700 md:hidden"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
           <div className="flex-1 flex justify-center">
             {isSearchableRoute && (
               <div className="w-full max-w-2xl group">

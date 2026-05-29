@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link, Navigate, useLocation } from 'react-router-dom';
 
 import AdminSidebar from '../components/common/AdminSidebar';
 import NotificationBell from '../components/common/NotificationBell';
 
 const AdminLayout = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const user = JSON.parse(sessionStorage.getItem('user') || '{}');
   const location = useLocation();
 
@@ -25,13 +26,23 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      <AdminSidebar />
-      <main className="flex-1 md:ml-64 relative h-screen overflow-y-auto bg-slate-50 flex flex-col">
+      <AdminSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <main className="flex-1 md:ml-64 bg-slate-50 flex flex-col">
         {/* Simple Header - Icons Only */}
-        <header className="bg-white sticky top-0 z-50 px-8 py-4 border-b border-slate-100 flex items-center justify-end h-20 shadow-sm">
-          <div className="flex items-center gap-4">
-            <NotificationBell />
+        <header className="bg-white sticky top-0 z-50 px-8 py-4 border-b border-slate-100 flex items-center justify-between h-20 shadow-sm">
+          {/* Mobile burger button */}
+          <button
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+            className="mr-4 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-slate-100 shadow-sm text-slate-700 md:hidden"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
 
+          <div className="ml-auto flex items-center gap-4">
+            <NotificationBell />
 
             <Link
               to="/admin/profile"

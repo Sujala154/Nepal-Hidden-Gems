@@ -307,7 +307,15 @@ const ChatsPage = () => {
     setMessage('');
     try {
       const res = await api.post(`/chats/${activeChat._id}/messages`, { content });
-      if (!res.success) toast.error('Failed to send message');
+      if (res.success) {
+        setMessages((prev) => {
+          const exists = prev.find((m) => m._id === res.data._id);
+          if (exists) return prev;
+          return [...prev, res.data];
+        });
+      } else {
+        toast.error('Failed to send message');
+      }
     } catch {
       toast.error('Failed to send message');
     }

@@ -298,11 +298,11 @@ const AdminProfile = () => {
       {/* Change Password Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-fadeIn">
-            <h2 className="text-2xl font-black text-[#0b1f3a] uppercase tracking-tight mb-6">Change Password</h2>
-            
-            <form onSubmit={handleChangePassword} className="space-y-5">
-              <div className="space-y-1.5">
+          <div className="bg-white rounded-xl p-5 max-w-sm w-full shadow-2xl relative animate-fadeIn">
+            <h2 className="text-sm font-black text-[#0b1f3a] uppercase tracking-tight mb-4">Change Password</h2>
+
+            <form onSubmit={handleChangePassword} className="space-y-3">
+              <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Password</label>
                 <div className="relative">
                   <input
@@ -310,18 +310,18 @@ const AdminProfile = () => {
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all text-sm font-bold text-slate-700 pr-12"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all text-sm font-bold text-slate-700 pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-500 transition-colors text-lg"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-500 transition-colors"
                   >
                     {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">New Password</label>
                 <div className="relative">
                   <input
@@ -329,29 +329,29 @@ const AdminProfile = () => {
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all text-sm font-bold text-slate-700 pr-12"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all text-sm font-bold text-slate-700 pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-500 transition-colors text-lg"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-500 transition-colors"
                   >
                     {showNewPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
               </div>
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowPasswordModal(false)}
-                  className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
+                  className="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updatingPassword}
-                  className="flex-1 py-4 bg-amber-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-amber-600 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-amber-500 text-white rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-amber-600 transition-all flex items-center justify-center gap-2"
                 >
                   {updatingPassword ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

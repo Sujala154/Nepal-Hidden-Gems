@@ -225,17 +225,17 @@ const AdminDestinations = () => {
       {/* Approve Modal */}
       {showApproveModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-slate-900/20 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white rounded-[24px] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 border border-slate-100 p-5 relative">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 border border-slate-100 p-5 relative">
             <button
               onClick={() => setShowApproveModal(false)}
-              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-slate-50/60 hover:bg-slate-100/80 flex items-center justify-center transition-all text-slate-400 z-10"
+              className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-all text-slate-400 z-10 border border-slate-100"
             >
-              <FaTimes />
+              <FaTimes className="text-xs" />
             </button>
 
             <div className="mb-4">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight mb-0.5">Publish Destination?</h3>
-              <p className="text-sm text-slate-500 font-medium leading-snug">
+              <h3 className="text-lg font-black text-slate-900 tracking-tight leading-none mb-1">Publish Destination?</h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 You are authorizing <span className="text-slate-900 font-bold">{selectedDest.name}</span> to be visible to all travelers. This action will send it live instantly.
               </p>
             </div>
@@ -243,14 +243,14 @@ const AdminDestinations = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowApproveModal(false)}
-                className="flex-1 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] text-slate-600 border border-slate-200 bg-transparent hover:bg-slate-50 transition-all"
+                className="flex-1 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] text-slate-500 bg-slate-50 hover:bg-slate-100 transition-all border border-slate-100"
               >
                 Keep in Review
               </button>
               <button
                 onClick={handleApprove}
                 disabled={actionLoading}
-                className="flex-1 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] text-white bg-[#0b1f3a] shadow-xl shadow-[#0b1f3a]/20 hover:bg-[#0a1a2e] transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] text-white bg-[#0b1f3a] shadow-lg shadow-[#0b1f3a]/15 hover:bg-[#071424] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
                 {actionLoading === selectedDest?._id ? <FaSpinner className="animate-spin" /> : 'Confirm & Publish'}
               </button>
@@ -261,54 +261,56 @@ const AdminDestinations = () => {
 
       {/* Reject Modal */}
       {showRejectModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 border border-slate-100 p-8 relative">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-slate-900/20 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 border border-slate-100 p-5 relative">
             <button
               onClick={() => setShowRejectModal(false)}
-              className="absolute top-6 right-6 w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-all text-slate-400 z-10"
+              className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-all text-slate-400 z-10 border border-slate-100"
             >
-              <FaTimes />
+              <FaTimes className="text-xs" />
             </button>
 
-            <div className="mb-6 space-y-4">
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-1">Decline Submission</h3>
-              <p className="text-slate-500 font-medium leading-relaxed mb-2">
-                Please specify exactly what needs to be fixed.
-              </p>
+            <div className="mb-4 space-y-3.5">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight leading-none mb-1">Decline Submission</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Please specify exactly what needs to be fixed.
+                </p>
+              </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-2">Exact Problem (Short)</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 block mx-1">Exact Problem (Short)</label>
                 <input
                   type="text"
                   value={rejectionTitle}
                   onChange={(e) => setRejectionTitle(e.target.value)}
                   placeholder="e.g. Blurry Cover Image"
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/10 focus:border-red-500 transition-all text-slate-700 font-bold placeholder:text-slate-300"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/10 focus:border-red-500 transition-all text-xs text-slate-700 font-bold placeholder:text-slate-300"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block mx-2">Detailed Advice for Contributor</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 block mx-1">Detailed Advice for Contributor</label>
                 <textarea
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   placeholder="Explain the specific problem and how they can fix it..."
-                  className="w-full h-32 px-6 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/10 focus:border-red-500 transition-all resize-none text-slate-700 font-medium placeholder:text-slate-300"
+                  className="w-full h-28 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/10 focus:border-red-500 transition-all resize-none text-xs text-slate-700 font-medium placeholder:text-slate-300"
                 />
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowRejectModal(false)}
-                className="flex-1 py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] text-slate-500 bg-slate-50 hover:bg-slate-100 transition-all"
+                className="flex-1 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] text-slate-500 bg-slate-50 hover:bg-slate-100 transition-all border border-slate-100"
               >
                 Go Back
               </button>
               <button
                 onClick={() => handleReject(selectedDest._id)}
                 disabled={actionLoading || !rejectionReason.trim() || !rejectionTitle.trim()}
-                className="flex-1 py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] text-white bg-slate-900 shadow-xl shadow-slate-900/20 hover:bg-black transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] text-white bg-slate-900 shadow-lg shadow-slate-900/10 hover:bg-black transition-all flex items-center justify-center gap-2"
               >
                 {actionLoading === selectedDest?._id ? <FaSpinner className="animate-spin" /> : 'Confirm Decline'}
               </button>
